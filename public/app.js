@@ -1296,3 +1296,52 @@ document.addEventListener("click", (event) => {
 
 window.silaRenderTransactionsPage = silaRenderTransactionsPage;
 // SILA_TRANSACTIONS_PAGE_END
+
+// SILA_MENU_ROUTER_START
+function silaMenuText(node) {
+  return String(node ? node.textContent || "" : "").trim().toLowerCase();
+}
+
+function silaMenuClosestText(event) {
+  const item = event.target.closest("a, button, [data-page], [role=\"button\"], li");
+  return item ? silaMenuText(item) : "";
+}
+
+document.addEventListener("click", (event) => {
+  if (!event.target || typeof event.target.closest !== "function") return;
+
+  const item = event.target.closest("a, button, [data-page], [role=\"button\"], li");
+  if (!item) return;
+
+  const page = item.getAttribute("data-page");
+  const text = silaMenuClosestText(event);
+
+  const wantsBlocks = page === "blocks"
+    || text === "view blocks"
+    || text === "blocks"
+    || text.includes("view blocks");
+
+  const wantsTransactions = page === "txs"
+    || page === "transactions"
+    || page === "pending-txs"
+    || text === "sila transactions"
+    || text === "transactions"
+    || text === "pending sila transactions"
+    || text.includes("sila transactions")
+    || text.includes("pending sila transactions");
+
+  if (wantsBlocks && typeof window.silaRenderBlocksPage === "function") {
+    event.preventDefault();
+    event.stopImmediatePropagation();
+    window.silaRenderBlocksPage();
+    return;
+  }
+
+  if (wantsTransactions && typeof window.silaRenderTransactionsPage === "function") {
+    event.preventDefault();
+    event.stopImmediatePropagation();
+    window.silaRenderTransactionsPage();
+    return;
+  }
+}, true);
+// SILA_MENU_ROUTER_END

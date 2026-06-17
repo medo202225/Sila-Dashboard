@@ -397,6 +397,12 @@ async function blocksPage(query) {
 const server = http.createServer(async (req, res) => {
   const url = new URL(req.url, "http://" + req.headers.host);
   try {
+    // SILA_FAVICON_ROUTE_START
+    if (url.pathname === "/favicon.ico") {
+      res.writeHead(302, { Location: "/favicon.svg" });
+      return res.end();
+    }
+    // SILA_FAVICON_ROUTE_END
     if (url.pathname === "/api/sila/transactions") return sendJson(res, 200, await transactionsPage(url));
     if (url.pathname === "/api/sila/blocks") return sendJson(res, 200, await blocksPage(url));
     if (url.pathname === "/api/sila/summary") return sendJson(res, 200, await getSummary());
