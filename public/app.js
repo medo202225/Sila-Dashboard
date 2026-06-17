@@ -1981,3 +1981,142 @@ window.silaRenderConsensusPage = silaRenderConsensusPageEnhanced;
   }
 })();
 // SILA_CONSENSUS_EXPOSE_FIX_END
+
+// SILA_BLOCKS_RENDER_RESTORE_START
+(function () {
+  function escapeHtml(value) {
+    return String(value === null || value === undefined ? "—" : value)
+      .replaceAll("&", "&amp;")
+      .replaceAll("<", "&lt;")
+      .replaceAll(">", "&gt;")
+      .replaceAll("\"", "&quot;")
+      .replaceAll("'", "&#39;");
+  }
+
+  function shortHash(value) {
+    if (!value || typeof value !== "string") return "—";
+    return value.length <= 22 ? value : value.slice(0, 10) + "..." + value.slice(-8);
+  }
+
+  function ensureFeatureView() {
+    let view = document.getElementById("featureView");
+    if (view) return view;
+
+    view = document.createElement("section");
+    view.id = "featureView";
+    view.className = "view page";
+    document.querySelector("main").appendChild(view);
+    return view;
+  }
+
+  function showFeatureView() {
+    document.querySelectorAll(".view").forEach((node) => node.classList.remove("active-view"));
+    const view = ensureFeatureView();
+    view.classList.add("active-view");
+    return view;
+  }
+
+  function blockNumberOf(block) {
+    return block.number || block.height || block.blockNumber || "—";
+  }
+
+  function blockHashOf(block) {
+    return block.hash || block.blockHash || "—";
+  }
+
+  function txCountOf(block) {
+    if (block.transactionCount !== undefined && block.transactionCount !== null) return block.transactionCount;
+    if (Array.isArray(block.transactions)) return block.transactions.length;
+    return 0;
+  }
+
+  async function renderBlocksPage() {
+    const view = showFeatureView();
+
+    view.innerHTML = ""
+      + "<section class=\"sila-detail-hero\">"
+      + "  <div>"
+      + "    <small>Sila Execution</small>"
+      + "    <h1>Blocks</h1>"
+      + "    <p class=\"muted\">Loading latest Sila blocks...</p>"
+      + "  </div>"
+      + "</section>";
+
+    let data;
+    try {
+      data = await fetch("/api/sila/blocks?limit=25", { cache: "no-store" }).then((res) => res.json());
+    } catch (error) {
+      view.innerHTML = "<section class=\"panel\"><h2>Sila Blocks</h2><p class=\"muted\">Blocks API error: " + escapeHtml(error.message) + "</p></section>";
+      return;
+    }
+
+    const blocks = Array.isArray(data) ? data : (data.blocks || data.items || data.recentBlocks || []);
+
+    if (!blocks.length) {
+      view.innerHTML = ""
+        + "<section class=\"sila-detail-hero\">"
+        + "  <div><small>Sila Execution</small><h1>Blocks</h1><p class=\"muted\">No Sila blocks returned by the API.</p></div>"
+        + "  <div class=\"sila-detail-actions\"><button type=\"button\" onclick=\"window.silaRenderBlocksPage()\">Refresh</button></div>"
+        + "</section>"
+        + "<section class=\"panel\"><div class=\"sila-empty-state\"><div><strong>No blocks found.</strong><span>The Sila blocks API returned an empty list.</span></div></div></section>";
+      return;
+    }
+
+    const rows = blocks.map((block) => {
+      const number = blockNumberOf(block);
+      const hash = blockHashOf(block);
+      const txCount = txCountOf(block);
+      const gasUsed = block.gasUsed || "0";
+      const gasLimit = block.gasLimit || "—";
+      const miner = block.minerShort || block.miner || "—";
+
+      return ""
+        + "<tr>"
+        + "  <td><button class=\"linklike\" type=\"button\" onclick=\"window.silaRenderBlockDetails('" + escapeHtml(number) + "')\">#" + escapeHtml(number) + "</button></td>"
+        + "  <td class=\"mono\" title=\"" + escapeHtml(hash) + "\">" + escapeHtml(shortHash(hash)) + "</td>"
+        + "  <td>" + escapeHtml(txCount) + "</td>"
+        + "  <td>" + escapeHtml(gasUsed) + " / " + escapeHtml(gasLimit) + "</td>"
+        + "  <td class=\"mono\">" + escapeHtml(miner) + "</td>"
+        + "</tr>";
+    }).join("");
+
+    view.innerHTML = ""
+      + "<section class=\"sila-detail-hero\">"
+      + "  <div>"
+      + "    <small>Sila Execution</small>"
+      + "    <h1>Blocks</h1>"
+      + "    <p class=\"muted\">Latest live blocks from the local Sila execution RPC.</p>"
+      + "  </div>"
+      + "  <div class=\"sila-detail-actions\"><button type=\"button\" onclick=\"window.silaRenderBlocksPage()\">Refresh</button></div>"
+      + "</section>"
+      + "<section class=\"panel sila-detail-card\">"
+      + "  <h2>Latest Blocks</h2>"
+      + "  <div class=\"table-wrap\">"
+      + "    <table>"
+      + "      <thead><tr><th>Block</th><th>Hash</th><th>Txns</th><th>Gas</th><th>Fee Recipient</th></tr></thead>"
+      + "      <tbody>" + rows + "</tbody>"
+      + "    </table>"
+      + "  </div>"
+      + "</section>";
+  }
+
+  window.silaRenderBlocksPage = renderBlocksPage;
+
+  document.addEventListener("click", (event) => {
+    if (!event.target || typeof event.target.closest !== "function") return;
+
+    const item = event.target.closest("a, button, [data-page], [role=\"button\"], li");
+    if (!item) return;
+
+    const page = item.getAttribute("data-page");
+    const text = String(item.textContent || "").trim().toLowerCase();
+
+    const wantsBlocks = page === "blocks" || text === "view blocks" || text.includes("view blocks");
+    if (!wantsBlocks) return;
+
+    event.preventDefault();
+    event.stopImmediatePropagation();
+    renderBlocksPage();
+  }, true);
+})();
+// SILA_BLOCKS_RENDER_RESTORE_END
