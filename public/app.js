@@ -1016,3 +1016,170 @@ document.addEventListener("click", (event) => {
 
 window.silaRenderAddressDetails = silaRenderAddressDetails;
 // SILA_ADDRESS_DETAILS_PAGE_END
+
+// SILA_SEARCH_ROUTER_START
+function silaSearchNormalize(value) {
+  return String(value || "").trim();
+}
+
+function silaSearchKind(query) {
+  const q = silaSearchNormalize(query);
+
+  if (/^[0-9]+$/.test(q)) return "block";
+  if (/^0x[0-9a-fA-F]{40}$/.test(q)) return "address";
+  if (/^0x[0-9a-fA-F]{64}$/.test(q)) return "hash";
+  if (/^0x[0-9a-fA-F]{1,16}$/.test(q)) return "block";
+
+  return "unknown";
+}
+
+function silaSearchEnsureView() {
+  let view = document.getElementById("featureView");
+  if (view) return view;
+
+  view = document.createElement("section");
+  view.id = "featureView";
+  view.className = "view page";
+  document.querySelector("main").appendChild(view);
+  return view;
+}
+
+function silaSearchShowMessage(title, message, query) {
+  document.querySelectorAll(".view").forEach((node) => node.classList.remove("active-view"));
+  const view = silaSearchEnsureView();
+  view.classList.add("active-view");
+  view.innerHTML = ""
+    + "<section class=\"sila-detail-hero\">"
+    + "  <div>"
+    + "    <small>Sila Search</small>"
+    + "    <h1>" + String(title).replaceAll("<", "&lt;").replaceAll(">", "&gt;") + "</h1>"
+    + "    <p class=\"muted\">" + String(message).replaceAll("<", "&lt;").replaceAll(">", "&gt;") + "</p>"
+    + "    <p class=\"muted mono\">" + String(query || "").replaceAll("<", "&lt;").replaceAll(">", "&gt;") + "</p>"
+    + "  </div>"
+    + "</section>";
+}
+
+async function silaSearchRouteHash(query) {
+  try {
+    const tx = await fetch("/api/sila/tx/" + encodeURIComponent(query), { cache: "no-store" }).then((res) => res.json());
+    if (tx && tx.ok && tx.transaction && tx.transaction.value) {
+      window.silaRenderTxDetails(query);
+      return;
+    }
+  } catch {
+  }
+
+  try {
+    const block = await fetch("/api/sila/block/" + encodeURIComponent(query), { cache: "no-store" }).then((res) => res.json());
+    if (block && block.ok && block.block) {
+      window.silaRenderBlockDetails(query);
+      return;
+    }
+  } catch {
+  }
+
+  window.silaRenderTxDetails(query);
+}
+
+async function silaRouteSearchQuery(query) {
+  const q = silaSearchNormalize(query);
+  const kind = silaSearchKind(q);
+
+  if (!q) return false;
+
+  if (kind === "block") {
+    if (typeof window.silaRenderBlockDetails === "function") window.silaRenderBlockDetails(q);
+    return true;
+  }
+
+  if (kind === "address") {
+    if (typeof window.silaRenderAddressDetails === "function") window.silaRenderAddressDetails(q);
+    return true;
+  }
+
+  if (kind === "hash") {
+    await silaSearchRouteHash(q);
+    return true;
+  }
+
+  silaSearchShowMessage("Unsupported Search", "Enter a Sila block number, transaction hash, block hash, or address.", q);
+  return true;
+}
+
+function silaFindSearchInput(scope) {
+  const roots = [];
+  if (scope) {
+    const form = scope.closest ? scope.closest("form") : null;
+    if (form) roots.push(form);
+    const section = scope.closest ? scope.closest("section, header, main, .hero, .panel, .search, .search-box, .searchbar") : null;
+    if (section) roots.push(section);
+  }
+  roots.push(document);
+
+  for (const root of roots) {
+    const inputs = Array.from(root.querySelectorAll("input"));
+    for (const input of inputs) {
+      const type = (input.getAttribute("type") || "text").toLowerCase();
+      if (type === "hidden" || type === "checkbox" || type === "radio" || type === "button" || type === "submit") continue;
+      if (input.offsetParent === null && root !== document) continue;
+      return input;
+    }
+  }
+
+  return null;
+}
+
+document.addEventListener("submit", (event) => {
+  const form = event.target;
+  if (!form || typeof form.querySelector !== "function") return;
+
+  const input = silaFindSearchInput(form);
+  if (!input) return;
+
+  const q = silaSearchNormalize(input.value);
+  if (silaSearchKind(q) === "unknown" && !q) return;
+
+  event.preventDefault();
+  event.stopImmediatePropagation();
+  silaRouteSearchQuery(q);
+}, true);
+
+document.addEventListener("click", (event) => {
+  if (!event.target || typeof event.target.closest !== "function") return;
+
+  const button = event.target.closest("button, [role=\"button\"], input[type=\"submit\"]");
+  if (!button) return;
+
+  const label = (button.getAttribute("aria-label") || button.value || button.textContent || "").trim().toLowerCase();
+  const looksLikeSearch = label.includes("search") || label.includes("بحث") || button.hasAttribute("data-search");
+  if (!looksLikeSearch) return;
+
+  const input = silaFindSearchInput(button);
+  if (!input) return;
+
+  const q = silaSearchNormalize(input.value);
+  if (!q) return;
+
+  event.preventDefault();
+  event.stopImmediatePropagation();
+  silaRouteSearchQuery(q);
+}, true);
+
+document.addEventListener("keydown", (event) => {
+  const target = event.target;
+  if (!target || target.tagName !== "INPUT") return;
+  if (event.key !== "Enter") return;
+
+  const q = silaSearchNormalize(target.value);
+  if (!q) return;
+
+  const kind = silaSearchKind(q);
+  if (kind === "unknown") return;
+
+  event.preventDefault();
+  event.stopImmediatePropagation();
+  silaRouteSearchQuery(q);
+}, true);
+
+window.silaRouteSearchQuery = silaRouteSearchQuery;
+// SILA_SEARCH_ROUTER_END
