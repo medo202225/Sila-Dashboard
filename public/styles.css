@@ -675,3 +675,122 @@ html[dir="rtl"] .feed-side { text-align: left; }
   }
 }
 /* SILA_REAL_BLOCKS_PAGE_END */
+
+/* SILA_BLOCK_DETAILS_PAGE_START */
+.sila-detail-hero {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 18px;
+  padding: 28px;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: linear-gradient(135deg, rgba(7,132,195,.12), rgba(7,136,74,.08));
+}
+
+.sila-detail-hero small {
+  color: var(--green);
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.sila-detail-hero h1 {
+  margin: 8px 0 6px;
+}
+
+.sila-detail-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.sila-detail-actions button {
+  border: 1px solid var(--line);
+  background: var(--panel);
+  color: var(--text);
+  border-radius: 8px;
+  padding: 9px 12px;
+  cursor: pointer;
+}
+
+.sila-detail-actions button:hover {
+  color: var(--blue);
+  background: rgba(7,132,195,.08);
+}
+
+.sila-detail-card {
+  margin-top: 20px;
+}
+
+.sila-detail-grid {
+  display: grid;
+  grid-template-columns: 220px 1fr;
+  gap: 0;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  overflow: hidden;
+}
+
+.sila-detail-label,
+.sila-detail-value {
+  padding: 15px 16px;
+  border-bottom: 1px solid var(--line);
+}
+
+.sila-detail-label {
+  color: var(--muted);
+  background: rgba(100,116,139,.06);
+  font-weight: 700;
+}
+
+.sila-detail-value {
+  overflow-wrap: anywhere;
+}
+
+.sila-detail-value.mono {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+}
+
+.sila-detail-grid .sila-detail-label:nth-last-child(2),
+.sila-detail-grid .sila-detail-value:last-child {
+  border-bottom: 0;
+}
+
+.sila-copy-btn {
+  margin-left: 8px;
+  border: 1px solid var(--line);
+  background: var(--panel);
+  color: var(--muted);
+  border-radius: 7px;
+  padding: 4px 8px;
+  cursor: pointer;
+}
+
+.sila-copy-btn:hover {
+  color: var(--blue);
+}
+
+html[dir="rtl"] .sila-copy-btn {
+  margin-left: 0;
+  margin-right: 8px;
+}
+
+@media (max-width: 760px) {
+  .sila-detail-hero {
+    flex-direction: column;
+  }
+
+  .sila-detail-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .sila-detail-label {
+    border-bottom: 0;
+    padding-bottom: 6px;
+  }
+
+  .sila-detail-value {
+    padding-top: 6px;
+  }
+}
+/* SILA_BLOCK_DETAILS_PAGE_END */

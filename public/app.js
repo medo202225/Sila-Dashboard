@@ -526,3 +526,163 @@ document.addEventListener("click", (event) => {
 
 window.silaRenderBlocksPage = silaRenderBlocksPage;
 // SILA_REAL_BLOCKS_PAGE_END
+
+// SILA_BLOCK_DETAILS_PAGE_START
+function silaDetailEscape(value) {
+  return String(value === null || value === undefined ? "—" : value)
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll("\"", "&quot;")
+    .replaceAll("'", "&#39;");
+}
+
+function silaDetailShort(value) {
+  if (!value || typeof value !== "string") return "—";
+  return value.length <= 22 ? value : value.slice(0, 12) + "..." + value.slice(-10);
+}
+
+function silaDetailAge(timestamp) {
+  if (!timestamp) return "—";
+  const seconds = Math.max(0, Math.floor(Date.now() / 1000) - Number(timestamp));
+  if (!Number.isFinite(seconds)) return "—";
+  if (seconds < 60) return seconds + " secs ago";
+  const minutes = Math.floor(seconds / 60);
+  if (minutes < 60) return minutes + " mins ago";
+  const hours = Math.floor(minutes / 60);
+  if (hours < 24) return hours + " hrs ago";
+  const days = Math.floor(hours / 24);
+  return days + " days ago";
+}
+
+function silaDetailEnsureView() {
+  let view = document.getElementById("featureView");
+  if (view) return view;
+
+  view = document.createElement("section");
+  view.id = "featureView";
+  view.className = "view page";
+  document.querySelector("main").appendChild(view);
+  return view;
+}
+
+function silaDetailShowView() {
+  document.querySelectorAll(".view").forEach((node) => node.classList.remove("active-view"));
+  const view = silaDetailEnsureView();
+  view.classList.add("active-view");
+  return view;
+}
+
+function silaDetailRow(label, value, mono, copy) {
+  const safeValue = silaDetailEscape(value);
+  const copyButton = copy && value && value !== "—"
+    ? " <button class=\"sila-copy-btn\" type=\"button\" data-copy=\"" + safeValue + "\">Copy</button>"
+    : "";
+
+  return ""
+    + "<div class=\"sila-detail-label\">" + silaDetailEscape(label) + "</div>"
+    + "<div class=\"sila-detail-value" + (mono ? " mono" : "") + "\">" + safeValue + copyButton + "</div>";
+}
+
+async function silaRenderBlockDetails(blockId) {
+  const view = silaDetailShowView();
+
+  view.innerHTML = ""
+    + "<section class=\"sila-detail-hero\">"
+    + "  <div>"
+    + "    <small>Block Details</small>"
+    + "    <h1>Sila Block</h1>"
+    + "    <p class=\"muted\">Loading Sila block details...</p>"
+    + "  </div>"
+    + "</section>";
+
+  let data;
+
+  try {
+    data = await fetch("/api/sila/block/" + encodeURIComponent(blockId), { cache: "no-store" }).then((res) => res.json());
+  } catch (error) {
+    view.innerHTML = "<section class=\"panel\"><h2>Sila Block</h2><p class=\"muted\">Block API error: " + silaDetailEscape(error.message) + "</p></section>";
+    return;
+  }
+
+  if (!data || !data.ok || !data.block) {
+    view.innerHTML = "<section class=\"panel\"><h2>Sila Block</h2><p class=\"muted\">Sila block not found.</p><pre>" + silaDetailEscape(JSON.stringify(data, null, 2)) + "</pre></section>";
+    return;
+  }
+
+  const block = data.block;
+  const number = block.number || "—";
+  const prev = number !== "—" && Number(number) > 0 ? String(Number(number) - 1) : null;
+  const next = number !== "—" ? String(Number(number) + 1) : null;
+
+  view.innerHTML = ""
+    + "<section class=\"sila-detail-hero\">"
+    + "  <div>"
+    + "    <small>Block Details</small>"
+    + "    <h1>Sila Block #" + silaDetailEscape(number) + "</h1>"
+    + "    <p class=\"muted\">Detailed execution-layer block information from Sila RPC.</p>"
+    + "  </div>"
+    + "  <div class=\"sila-detail-actions\">"
+    + "    <button type=\"button\" data-page=\"blocks\">All Blocks</button>"
+    + (prev ? "    <button type=\"button\" data-sila-block-detail=\"" + silaDetailEscape(prev) + "\">Previous</button>" : "")
+    + (next ? "    <button type=\"button\" data-sila-block-detail=\"" + silaDetailEscape(next) + "\">Next</button>" : "")
+    + "  </div>"
+    + "</section>"
+    + "<section class=\"panel sila-detail-card\">"
+    + "  <h2>Overview</h2>"
+    + "  <div class=\"sila-detail-grid\">"
+    + silaDetailRow("Block Height", "#" + number, false, false)
+    + silaDetailRow("Status", "Finalized / canonical data depends on consensus finality endpoint", false, false)
+    + silaDetailRow("Timestamp", block.timestamp ? block.timestamp + " (" + silaDetailAge(block.timestamp) + ")" : "—", false, false)
+    + silaDetailRow("Transactions", block.transactionCount || 0, false, false)
+    + silaDetailRow("Fee Recipient", block.miner || "—", true, true)
+    + silaDetailRow("Block Reward", block.reward || "0 SILA", false, false)
+    + silaDetailRow("Gas Used", block.gasUsed || "0", false, false)
+    + silaDetailRow("Gas Limit", block.gasLimit || "—", false, false)
+    + silaDetailRow("Base Fee Per Gas", block.baseFeePerGas ? block.baseFeePerGas + " wei" : "—", false, false)
+    + silaDetailRow("Hash", block.hash || "—", true, true)
+    + silaDetailRow("Parent Hash", block.parentHash || "—", true, true)
+    + "  </div>"
+    + "</section>"
+    + "<section class=\"panel sila-detail-card\">"
+    + "  <h2>Raw Sila Block JSON</h2>"
+    + "  <pre>" + silaDetailEscape(JSON.stringify(data.raw && data.raw.value ? data.raw.value : data, null, 2)) + "</pre>"
+    + "</section>";
+}
+
+document.addEventListener("click", (event) => {
+  const detailButton = event.target.closest("[data-sila-block-detail]");
+  if (detailButton) {
+    event.preventDefault();
+    event.stopImmediatePropagation();
+    silaRenderBlockDetails(detailButton.getAttribute("data-sila-block-detail"));
+    return;
+  }
+
+  const blockButton = event.target.closest("[data-block]");
+  if (!blockButton) return;
+
+  const blockId = blockButton.getAttribute("data-block");
+  if (!blockId) return;
+
+  event.preventDefault();
+  event.stopImmediatePropagation();
+  silaRenderBlockDetails(blockId);
+}, true);
+
+document.addEventListener("click", (event) => {
+  const copyButton = event.target.closest("[data-copy]");
+  if (!copyButton) return;
+
+  const value = copyButton.getAttribute("data-copy");
+  navigator.clipboard.writeText(value).then(() => {
+    copyButton.textContent = "Copied";
+    setTimeout(() => { copyButton.textContent = "Copy"; }, 900);
+  }).catch(() => {
+    copyButton.textContent = "Copy failed";
+    setTimeout(() => { copyButton.textContent = "Copy"; }, 900);
+  });
+});
+
+window.silaRenderBlockDetails = silaRenderBlockDetails;
+// SILA_BLOCK_DETAILS_PAGE_END
