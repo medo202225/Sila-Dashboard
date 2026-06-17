@@ -1574,3 +1574,156 @@ document.addEventListener("DOMContentLoaded", () => {
 
 window.silaRenderHomeDashboard = silaRenderHomeDashboard;
 // SILA_HOME_DASHBOARD_END
+
+// SILA_CONSENSUS_PAGE_START
+function silaConsensusEscape(value) {
+  return String(value === null || value === undefined ? "—" : value)
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll("\"", "&quot;")
+    .replaceAll("'", "&#39;");
+}
+
+function silaConsensusBool(value) {
+  return value ? "Yes" : "No";
+}
+
+function silaConsensusStatus(ok) {
+  return ok ? "<span class=\"sila-consensus-ok\">Online</span>" : "<span class=\"sila-consensus-warn\">Offline</span>";
+}
+
+function silaConsensusEnsureView() {
+  let view = document.getElementById("featureView");
+  if (view) return view;
+
+  view = document.createElement("section");
+  view.id = "featureView";
+  view.className = "view page";
+  document.querySelector("main").appendChild(view);
+  return view;
+}
+
+function silaConsensusShowView() {
+  document.querySelectorAll(".view").forEach((node) => node.classList.remove("active-view"));
+  const view = silaConsensusEnsureView();
+  view.classList.add("active-view");
+  return view;
+}
+
+function silaConsensusRow(label, value, mono, copy) {
+  const safeValue = silaConsensusEscape(value);
+  const copyButton = copy && value && value !== "—"
+    ? " <button class=\"sila-copy-btn\" type=\"button\" data-copy=\"" + safeValue + "\">Copy</button>"
+    : "";
+
+  return ""
+    + "<div class=\"sila-detail-label\">" + silaConsensusEscape(label) + "</div>"
+    + "<div class=\"sila-detail-value" + (mono ? " mono" : "") + "\">" + safeValue + copyButton + "</div>";
+}
+
+function silaConsensusRowHtml(label, htmlValue) {
+  return ""
+    + "<div class=\"sila-detail-label\">" + silaConsensusEscape(label) + "</div>"
+    + "<div class=\"sila-detail-value\">" + htmlValue + "</div>";
+}
+
+function silaConsensusMini(label, value, html) {
+  return ""
+    + "<article class=\"sila-consensus-mini\">"
+    + "  <span>" + silaConsensusEscape(label) + "</span>"
+    + "  <strong>" + (html ? value : silaConsensusEscape(value)) + "</strong>"
+    + "</article>";
+}
+
+async function silaRenderConsensusPage() {
+  const view = silaConsensusShowView();
+
+  view.innerHTML = ""
+    + "<section class=\"sila-detail-hero\">"
+    + "  <div>"
+    + "    <small>Sila Consensus</small>"
+    + "    <h1>Validators / Consensus</h1>"
+    + "    <p class=\"muted\">Loading Sila-Prysm consensus data...</p>"
+    + "  </div>"
+    + "</section>";
+
+  let data;
+
+  try {
+    data = await fetch("/api/sila/consensus", { cache: "no-store" }).then((res) => res.json());
+  } catch (error) {
+    view.innerHTML = "<section class=\"panel\"><h2>Sila Consensus</h2><p class=\"muted\">Consensus API error: " + silaConsensusEscape(error.message) + "</p></section>";
+    return;
+  }
+
+  view.innerHTML = ""
+    + "<section class=\"sila-detail-hero\">"
+    + "  <div>"
+    + "    <small>Sila Consensus</small>"
+    + "    <h1>Validators / Consensus</h1>"
+    + "    <p class=\"muted\">Live consensus-layer data from Sila-Prysm.</p>"
+    + "  </div>"
+    + "  <div class=\"sila-detail-actions\">"
+    + "    <button type=\"button\" onclick=\"window.silaRenderConsensusPage()\">Refresh</button>"
+    + "  </div>"
+    + "</section>"
+    + "<section class=\"panel sila-detail-card\">"
+    + "  <h2>Consensus Overview</h2>"
+    + "  <div class=\"sila-consensus-grid\">"
+    + silaConsensusMini("Status", silaConsensusStatus(data.ok), true)
+    + silaConsensusMini("Head Slot", data.headSlot || "—", false)
+    + silaConsensusMini("Sync Distance", data.syncDistance || "—", false)
+    + silaConsensusMini("EL Offline", silaConsensusBool(data.elOffline), false)
+    + "  </div>"
+    + "</section>"
+    + "<section class=\"panel sila-detail-card\">"
+    + "  <h2>Sila-Prysm Details</h2>"
+    + "  <div class=\"sila-detail-grid\">"
+    + silaConsensusRowHtml("Status", silaConsensusStatus(data.ok))
+    + silaConsensusRow("Health Status", data.healthStatus || "—", false, false)
+    + silaConsensusRow("Version", data.version || "—", false, false)
+    + silaConsensusRow("Head Slot", data.headSlot || "—", false, false)
+    + silaConsensusRow("Sync Distance", data.syncDistance || "—", false, false)
+    + silaConsensusRow("Is Syncing", silaConsensusBool(data.isSyncing), false, false)
+    + silaConsensusRow("Is Optimistic", silaConsensusBool(data.isOptimistic), false, false)
+    + silaConsensusRow("Execution Optimistic", silaConsensusBool(data.executionOptimistic), false, false)
+    + silaConsensusRow("Canonical Head", silaConsensusBool(data.canonical), false, false)
+    + silaConsensusRow("Finalized", silaConsensusBool(data.finalized), false, false)
+    + silaConsensusRow("Proposer Index", data.proposerIndex || "—", false, false)
+    + silaConsensusRow("Head Root", data.headRoot || "—", true, !!data.headRoot)
+    + silaConsensusRow("Parent Root", data.parentRoot || "—", true, !!data.parentRoot)
+    + silaConsensusRow("State Root", data.stateRoot || "—", true, !!data.stateRoot)
+    + silaConsensusRow("Body Root", data.bodyRoot || "—", true, !!data.bodyRoot)
+    + silaConsensusRow("Head Block Status", data.headBlockStatus || "—", false, false)
+    + "  </div>"
+    + "</section>"
+    + "<section class=\"panel sila-detail-card\">"
+    + "  <h2>Validator Registry</h2>"
+    + "  <div class=\"sila-empty-state\"><div><strong>Validator registry not loaded in this lightweight page yet.</strong><span>Consensus health, head slot, roots, and sync state are live. Validator list can be added as the next indexed endpoint.</span></div></div>"
+    + "</section>"
+    + "<section class=\"panel sila-detail-card\">"
+    + "  <h2>Raw Sila Consensus JSON</h2>"
+    + "  <pre>" + silaConsensusEscape(JSON.stringify(data.raw || data, null, 2)) + "</pre>"
+    + "</section>";
+}
+
+document.addEventListener("click", (event) => {
+  if (!event.target || typeof event.target.closest !== "function") return;
+
+  const item = event.target.closest("a, button, [data-page], [role=\"button\"], li");
+  if (!item) return;
+
+  const page = item.getAttribute("data-page");
+  const text = String(item.textContent || "").trim().toLowerCase();
+
+  const wantsConsensus = page === "validators" || page === "consensus" || text === "validators" || text.includes("validators");
+  if (!wantsConsensus) return;
+
+  event.preventDefault();
+  event.stopImmediatePropagation();
+  silaRenderConsensusPage();
+}, true);
+
+window.silaRenderConsensusPage = silaRenderConsensusPage;
+// SILA_CONSENSUS_PAGE_END

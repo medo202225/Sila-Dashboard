@@ -1143,3 +1143,55 @@ html[dir="rtl"] .sila-copy-btn {
   }
 }
 /* SILA_HOME_DASHBOARD_BALANCED_END */
+
+/* SILA_CONSENSUS_PAGE_START */
+.sila-consensus-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+  margin-top: 18px;
+}
+
+.sila-consensus-mini {
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 14px;
+  background: rgba(7, 35, 24, .72);
+}
+
+.sila-consensus-mini span {
+  display: block;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: .05em;
+}
+
+.sila-consensus-mini strong {
+  display: block;
+  margin-top: 8px;
+  font-size: 22px;
+  overflow-wrap: anywhere;
+}
+
+.sila-consensus-ok {
+  color: var(--green);
+}
+
+.sila-consensus-warn {
+  color: var(--amber);
+}
+
+@media (max-width: 980px) {
+  .sila-consensus-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 560px) {
+  .sila-consensus-grid {
+    grid-template-columns: 1fr;
+  }
+}
+/* SILA_CONSENSUS_PAGE_END */

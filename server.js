@@ -397,6 +397,7 @@ async function blocksPage(query) {
 const server = http.createServer(async (req, res) => {
   const url = new URL(req.url, "http://" + req.headers.host);
   try {
+    if (url.pathname === "/api/sila/consensus") return sendJson(res, 200, await consensusPage());
     // SILA_FAVICON_ROUTE_START
     if (url.pathname === "/favicon.ico") {
       res.writeHead(302, { Location: "/favicon.svg" });
@@ -481,3 +482,42 @@ async function transactionsPage(query) {
   };
 }
 // SILA_TRANSACTIONS_PAGE_END
+
+// SILA_CONSENSUS_PAGE_START
+async function consensusPage() {
+  const summary = await getSummary();
+  const consensus = summary.consensus || { ok: false };
+  const syncing = consensus.syncing || {};
+  const headHeader = consensus.headHeader || {};
+
+  return {
+    ok: !!consensus.ok,
+    generatedAt: new Date().toISOString(),
+    chain: "Sila",
+    source: "Sila-Prysm",
+    status: consensus.ok ? "online" : "offline",
+    healthStatus: consensus.healthStatus || null,
+    version: consensus.version || null,
+    headSlot: syncing.headSlot || null,
+    syncDistance: syncing.syncDistance || null,
+    isSyncing: syncing.isSyncing === true,
+    isOptimistic: syncing.isOptimistic === true,
+    elOffline: syncing.elOffline === true,
+    headRoot: headHeader.root || null,
+    headRootShort: headHeader.rootShort || null,
+    canonical: headHeader.canonical === true,
+    finalized: headHeader.finalized === true,
+    executionOptimistic: headHeader.executionOptimistic === true,
+    proposerIndex: headHeader.proposerIndex || null,
+    parentRoot: headHeader.parentRoot || null,
+    stateRoot: headHeader.stateRoot || null,
+    bodyRoot: headHeader.bodyRoot || null,
+    headBlockStatus: consensus.headBlockStatus || null,
+    validatorRegistry: {
+      available: false,
+      reason: "Validator list endpoint is not indexed in this lightweight SilaScan page yet."
+    },
+    raw: consensus
+  };
+}
+// SILA_CONSENSUS_PAGE_END
