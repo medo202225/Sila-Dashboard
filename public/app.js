@@ -1515,8 +1515,8 @@ async function silaRenderHomeDashboard() {
   const gas = data.display ? data.display.gas : "—";
   const executionOk = !!(data.execution && data.execution.ok);
   const consensusOk = !!(data.consensus && data.consensus.ok);
-  const headSlot = data.consensus ? data.consensus.headSlot : "—";
-  const syncDistance = data.consensus ? data.consensus.syncDistance : "—";
+  const headSlot = data.consensus && data.consensus.syncing ? data.consensus.syncing.headSlot : "—";
+  const syncDistance = data.consensus && data.consensus.syncing ? data.consensus.syncing.syncDistance : "—";
 
   holder.innerHTML = ""
     + "<div class=\"sila-home-dashboard-head\">"
