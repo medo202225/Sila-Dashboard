@@ -686,3 +686,161 @@ document.addEventListener("click", (event) => {
 
 window.silaRenderBlockDetails = silaRenderBlockDetails;
 // SILA_BLOCK_DETAILS_PAGE_END
+
+// SILA_TX_DETAILS_PAGE_START
+function silaTxEscape(value) {
+  return String(value === null || value === undefined ? "—" : value)
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll("\"", "&quot;")
+    .replaceAll("'", "&#39;");
+}
+
+function silaTxHexToDec(value) {
+  if (!value || typeof value !== "string" || !value.startsWith("0x")) return "—";
+  try { return BigInt(value).toString(10); } catch { return "—"; }
+}
+
+function silaTxWeiToSila(value) {
+  if (!value || typeof value !== "string" || !value.startsWith("0x")) return "—";
+  try {
+    const wei = BigInt(value);
+    const base = 1000000000000000000n;
+    const whole = wei / base;
+    const frac = (wei % base).toString().padStart(18, "0").replace(/0+$/, "");
+    return frac ? whole.toString() + "." + frac + " SILA" : whole.toString() + " SILA";
+  } catch {
+    return "—";
+  }
+}
+
+function silaTxEnsureView() {
+  let view = document.getElementById("featureView");
+  if (view) return view;
+
+  view = document.createElement("section");
+  view.id = "featureView";
+  view.className = "view page";
+  document.querySelector("main").appendChild(view);
+  return view;
+}
+
+function silaTxShowView() {
+  document.querySelectorAll(".view").forEach((node) => node.classList.remove("active-view"));
+  const view = silaTxEnsureView();
+  view.classList.add("active-view");
+  return view;
+}
+
+function silaTxRow(label, value, mono, copy) {
+  const safeValue = silaTxEscape(value);
+  const copyButton = copy && value && value !== "—"
+    ? " <button class=\"sila-copy-btn\" type=\"button\" data-copy=\"" + safeValue + "\">Copy</button>"
+    : "";
+
+  return ""
+    + "<div class=\"sila-detail-label\">" + silaTxEscape(label) + "</div>"
+    + "<div class=\"sila-detail-value" + (mono ? " mono" : "") + "\">" + safeValue + copyButton + "</div>";
+}
+
+function silaTxStatusText(receipt) {
+  if (!receipt || !receipt.ok || !receipt.value) return "<span class=\"sila-tx-status-warn\">Pending / Not indexed</span>";
+  if (receipt.value.status === "0x1") return "<span class=\"sila-tx-status-ok\">Success</span>";
+  if (receipt.value.status === "0x0") return "<span class=\"sila-tx-status-warn\">Failed</span>";
+  return "<span class=\"sila-tx-status-warn\">Unknown</span>";
+}
+
+async function silaRenderTxDetails(txHash) {
+  const view = silaTxShowView();
+
+  view.innerHTML = ""
+    + "<section class=\"sila-detail-hero\">"
+    + "  <div>"
+    + "    <small>Transaction Details</small>"
+    + "    <h1>Sila Transaction</h1>"
+    + "    <p class=\"muted\">Loading Sila transaction details...</p>"
+    + "  </div>"
+    + "</section>";
+
+  let data;
+
+  try {
+    data = await fetch("/api/sila/tx/" + encodeURIComponent(txHash), { cache: "no-store" }).then((res) => res.json());
+  } catch (error) {
+    view.innerHTML = "<section class=\"panel\"><h2>Sila Transaction</h2><p class=\"muted\">Transaction API error: " + silaTxEscape(error.message) + "</p></section>";
+    return;
+  }
+
+  if (!data || !data.ok || !data.transaction || !data.transaction.value) {
+    view.innerHTML = ""
+      + "<section class=\"sila-detail-hero\">"
+      + "  <div>"
+      + "    <small>Transaction Details</small>"
+      + "    <h1>Sila Transaction</h1>"
+      + "    <p class=\"muted\">This Sila transaction was not found in the current node data.</p>"
+      + "  </div>"
+      + "</section>"
+      + "<section class=\"panel sila-detail-card\">"
+      + "  <h2>Lookup Result</h2>"
+      + "  <div class=\"sila-detail-grid\">"
+      + silaTxRow("Transaction Hash", txHash, true, true)
+      + silaTxRow("Status", "Not found / not in recent chain data", false, false)
+      + "  </div>"
+      + "  <pre>" + silaTxEscape(JSON.stringify(data, null, 2)) + "</pre>"
+      + "</section>";
+    return;
+  }
+
+  const tx = data.transaction.value;
+  const receipt = data.receipt;
+  const receiptValue = receipt && receipt.value ? receipt.value : null;
+
+  view.innerHTML = ""
+    + "<section class=\"sila-detail-hero\">"
+    + "  <div>"
+    + "    <small>Transaction Details</small>"
+    + "    <h1>Sila Transaction</h1>"
+    + "    <p class=\"muted\">Detailed execution-layer transaction information from Sila RPC.</p>"
+    + "  </div>"
+    + "  <div class=\"sila-detail-actions\">"
+    + "    <button type=\"button\" data-page=\"txs\">All Transactions</button>"
+    + "  </div>"
+    + "</section>"
+    + "<section class=\"panel sila-detail-card\">"
+    + "  <h2>Overview</h2>"
+    + "  <div class=\"sila-detail-grid\">"
+    + silaTxRow("Transaction Hash", tx.hash || txHash, true, true)
+    + silaTxRow("Status", silaTxStatusText(receipt), false, false)
+    + silaTxRow("Block", tx.blockNumber ? "#" + silaTxHexToDec(tx.blockNumber) : "Pending", false, false)
+    + silaTxRow("From", tx.from || "—", true, true)
+    + silaTxRow("To", tx.to || "Contract Creation / —", true, tx.to ? true : false)
+    + silaTxRow("Value", tx.value ? silaTxWeiToSila(tx.value) : "0 SILA", false, false)
+    + silaTxRow("Transaction Fee", receiptValue && receiptValue.gasUsed && tx.gasPrice ? silaTxWeiToSila("0x" + (BigInt(receiptValue.gasUsed) * BigInt(tx.gasPrice)).toString(16)) : "—", false, false)
+    + silaTxRow("Gas Price", tx.gasPrice ? silaTxHexToDec(tx.gasPrice) + " wei" : "—", false, false)
+    + silaTxRow("Gas Limit", tx.gas ? silaTxHexToDec(tx.gas) : "—", false, false)
+    + silaTxRow("Gas Used", receiptValue && receiptValue.gasUsed ? silaTxHexToDec(receiptValue.gasUsed) : "—", false, false)
+    + silaTxRow("Nonce", tx.nonce ? silaTxHexToDec(tx.nonce) : "—", false, false)
+    + silaTxRow("Input Data", tx.input || "0x", true, true)
+    + "  </div>"
+    + "</section>"
+    + "<section class=\"panel sila-detail-card\">"
+    + "  <h2>Raw Sila Transaction JSON</h2>"
+    + "  <pre>" + silaTxEscape(JSON.stringify(data, null, 2)) + "</pre>"
+    + "</section>";
+}
+
+document.addEventListener("click", (event) => {
+  const txButton = event.target.closest("[data-tx]");
+  if (!txButton) return;
+
+  const txHash = txButton.getAttribute("data-tx");
+  if (!txHash) return;
+
+  event.preventDefault();
+  event.stopImmediatePropagation();
+  silaRenderTxDetails(txHash);
+}, true);
+
+window.silaRenderTxDetails = silaRenderTxDetails;
+// SILA_TX_DETAILS_PAGE_END

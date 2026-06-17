@@ -794,3 +794,47 @@ html[dir="rtl"] .sila-copy-btn {
   }
 }
 /* SILA_BLOCK_DETAILS_PAGE_END */
+
+/* SILA_TX_DETAILS_PAGE_START */
+.sila-tx-status-ok {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: rgba(7,136,74,.12);
+  color: var(--green);
+  font-weight: 800;
+}
+
+.sila-tx-status-warn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: rgba(217,144,0,.12);
+  color: var(--amber);
+  font-weight: 800;
+}
+
+.sila-tx-section-tabs {
+  display: flex;
+  gap: 8px;
+  margin: 18px 0;
+}
+
+.sila-tx-section-tabs button {
+  border: 1px solid var(--line);
+  background: var(--panel);
+  color: var(--text);
+  border-radius: 999px;
+  padding: 8px 13px;
+  cursor: pointer;
+}
+
+.sila-tx-section-tabs button.active {
+  color: var(--blue);
+  background: rgba(7,132,195,.08);
+}
+/* SILA_TX_DETAILS_PAGE_END */
