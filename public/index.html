@@ -1,0 +1,230 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>SilaScan</title>
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+  <div class="minibar">
+    <div class="mini-left">
+      <span data-i18n="priceLabel">SILA Price</span>: <b id="silaPrice">—</b>
+      <span class="sep">|</span>
+      <span data-i18n="gasLabel">Gas</span>: <b id="gasPrice">—</b>
+    </div>
+    <div class="mini-actions">
+      <div class="menu-wrap">
+        <button id="settingsButton" class="icon-btn" type="button" aria-label="Settings">⚙</button>
+        <div id="settingsDropdown" class="dropdown hidden">
+          <button type="button" id="settingsRefreshNow"><span data-i18n="refreshNow">Refresh now</span><small>⟳</small></button>
+          <button type="button" id="settingsAutoRefresh"><span data-i18n="autoRefresh">Auto refresh</span><small id="autoRefreshState">ON</small></button>
+          <button type="button" data-refresh-interval="5000"><span data-i18n="refreshInterval">Refresh interval</span><small>5s</small></button>
+          <button type="button" data-refresh-interval="10000"><span data-i18n="refreshInterval">Refresh interval</span><small>10s</small></button>
+          <button type="button" data-refresh-interval="30000"><span data-i18n="refreshInterval">Refresh interval</span><small>30s</small></button>
+          <button type="button" id="settingsRawJson"><span data-i18n="developerJson">Developer JSON</span><small id="rawJsonState">SHOW</small></button>
+        </div>
+      </div>
+      <div class="menu-wrap">
+        <button id="languageButton" class="icon-btn" type="button" aria-label="Language">🌐</button>
+        <div id="languageDropdown" class="dropdown hidden">
+          <button type="button" data-lang="en"><span>English</span><small>EN</small></button>
+          <button type="button" data-lang="ar"><span>العربية</span><small>AR</small></button>
+          <button type="button" data-lang="fr"><span>Français</span><small>FR</small></button>
+        </div>
+      </div>
+      <button id="themeToggle" class="icon-btn" type="button" aria-label="Theme">☼</button>
+      <div class="menu-wrap">
+        <button id="networkButton" class="icon-btn network-icon" type="button" aria-label="Network">S</button>
+        <div id="networkDropdown" class="dropdown hidden">
+          <button type="button"><span>Sila Local Devnet</span><small>LIVE</small></button>
+          <button type="button"><span>Sila Mainnet</span><small>SOON</small></button>
+          <button type="button"><span>Sila Testnet</span><small>SOON</small></button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <header class="topbar">
+    <div class="brand">
+      <div class="logo">S</div>
+      <strong>SilaScan</strong>
+    </div>
+    <nav>
+      <button class="nav-btn active" data-view="home" data-i18n="navHome">Home</button>
+      <button class="nav-btn" data-view="explorer" data-i18n="navBlockchain">Blockchain</button>
+      <button class="nav-btn" data-view="wallet" data-i18n="navWallet">Wallet</button>
+      <button class="nav-btn" data-view="validators" data-i18n="navValidators">Validators</button>
+      <button class="nav-btn" data-view="developers" data-i18n="navDevelopers">Developers</button>
+      <button class="nav-btn" data-view="more" data-i18n="navMore">More</button>
+    </nav>
+  </header>
+
+  <main>
+    <section id="homeView" class="view active-view">
+      <section class="hero">
+        <div class="hero-art"></div>
+        <div class="hero-content">
+          <h1 data-i18n="heroTitle">The Sila Blockchain Explorer</h1>
+          <form id="homeSearchForm" class="mega-search">
+            <select id="searchType">
+              <option value="all" data-i18n="allFilters">All Filters</option>
+              <option value="block" data-i18n="block">Block</option>
+              <option value="tx" data-i18n="transaction">Transaction</option>
+              <option value="address" data-i18n="address">Address</option>
+            </select>
+            <input id="homeSearchInput" data-i18n-placeholder="searchPlaceholder" placeholder="Search by Address / Txn Hash / Block">
+            <button type="submit">⌕</button>
+          </form>
+          <small id="homeSearchStatus"></small>
+        </div>
+      </section>
+
+      <section class="overview-card">
+        <div class="overview-col">
+          <div class="overview-row">
+            <span class="overview-icon">◈</span>
+            <div><small data-i18n="silaPriceTitle">SILA PRICE</small><strong id="homePrice">—</strong></div>
+          </div>
+          <div class="overview-row">
+            <span class="overview-icon">◎</span>
+            <div><small data-i18n="marketCap">MARKET CAP</small><strong id="homeMarketCap">—</strong></div>
+          </div>
+        </div>
+        <div class="overview-col">
+          <div class="overview-row">
+            <span class="overview-icon">▤</span>
+            <div><small data-i18n="transactionsTitle">TRANSACTIONS</small><strong><span id="homeTransactions">—</span> <em id="homeTps">(— TPS)</em></strong></div>
+          </div>
+          <div class="overview-row">
+            <span class="overview-icon">●</span>
+            <div><small data-i18n="headSlotTitle">HEAD SLOT</small><strong id="homeHeadSlot">—</strong></div>
+          </div>
+        </div>
+        <div class="overview-col">
+          <div class="overview-row">
+            <span class="overview-icon">ϟ</span>
+            <div><small data-i18n="gasTitle">SILA GAS</small><strong id="homeGas">—</strong></div>
+          </div>
+          <div class="overview-row">
+            <span class="overview-icon">▱</span>
+            <div><small data-i18n="latestBlockTitle">LATEST BLOCK</small><strong id="homeLatestBlock">—</strong></div>
+          </div>
+        </div>
+        <div class="overview-chart">
+          <small data-i18n="historyTitle">SILA ACTIVITY</small>
+          <div id="sparkline" class="sparkline"></div>
+        </div>
+      </section>
+
+      <section class="home-grid">
+        <article class="home-panel">
+          <div class="panel-head">
+            <h2 data-i18n="latestBlocks">Latest Blocks</h2>
+            <button class="small-btn" data-view-link="explorer" data-i18n="customize">Customize</button>
+          </div>
+          <div id="homeBlocksList" class="feed-list"><div class="loading" data-i18n="loadingBlocks">Loading Sila blocks...</div></div>
+          <button class="panel-footer-btn" data-view-link="explorer" data-i18n="viewAllBlocks">View all blocks →</button>
+        </article>
+
+        <article class="home-panel">
+          <div class="panel-head">
+            <h2 data-i18n="latestTransactions">Latest Transactions</h2>
+            <button class="small-btn" data-view-link="explorer" data-i18n="customize">Customize</button>
+          </div>
+          <div id="homeTxList" class="feed-list"><div class="loading" data-i18n="loadingTxs">Loading Sila transactions...</div></div>
+          <button class="panel-footer-btn" data-view-link="explorer" data-i18n="viewAllTransactions">View all transactions →</button>
+        </article>
+      </section>
+    </section>
+
+    <section id="explorerView" class="view page">
+      <h1 data-i18n="explorerTitle">Blockchain Explorer</h1>
+      <p id="networkLine">Connecting to Sila Network...</p>
+      <form id="searchForm" class="page-search">
+        <span>⌕</span>
+        <input id="searchInput" data-i18n-placeholder="searchPlaceholder" placeholder="Search by Sila Block / Tx Hash / Address">
+        <button type="submit" data-i18n="search">Search</button>
+      </form>
+      <small id="searchStatus"></small>
+      <section class="stats">
+        <article><span data-i18n="blockHeight">Block Height</span><strong id="blockHeight">—</strong></article>
+        <article><span data-i18n="transactions">Transactions</span><strong id="txCount">—</strong></article>
+        <article><span data-i18n="headSlot">Head Slot</span><strong id="headSlot">—</strong></article>
+        <article><span data-i18n="tps">TPS</span><strong id="tps">—</strong></article>
+      </section>
+      <section class="grid">
+        <article class="panel"><h2 data-i18n="recentBlocks">Recent Blocks</h2><table><thead><tr><th data-i18n="block">BLOCK</th><th data-i18n="transactions">TRANSACTIONS</th><th data-i18n="gasUsed">GAS USED</th><th>HASH</th></tr></thead><tbody id="blocksBody"></tbody></table></article>
+        <article class="panel"><h2 data-i18n="recentTransactions">Recent Transactions</h2><table><thead><tr><th>HASH</th><th data-i18n="block">BLOCK</th><th data-i18n="status">STATUS</th></tr></thead><tbody id="txBody"></tbody></table></article>
+      </section>
+      <section id="resultPanel" class="panel result hidden"><h2 id="resultTitle">Sila Lookup</h2><pre id="resultBody">{}</pre></section>
+    </section>
+
+    <section id="walletView" class="view page">
+      <section class="panel">
+        <h2 data-i18n="walletTitle">Sila Wallet</h2>
+        <p class="muted" data-i18n="walletDesc">Read-only address inspection. No private keys, no seed phrase, no signing, no sending.</p>
+        <form id="walletForm" class="page-search">
+          <span>⌕</span>
+          <input id="walletAddress" placeholder="0x...">
+          <button type="submit" data-i18n="inspect">Inspect</button>
+        </form>
+        <small id="walletStatus"></small>
+        <section class="stats small-stats">
+          <article><span data-i18n="balanceWei">Balance Wei</span><strong id="walletBalance">—</strong></article>
+          <article><span data-i18n="nonce">Nonce</span><strong id="walletNonce">—</strong></article>
+          <article><span data-i18n="contract">Contract</span><strong id="walletContract">—</strong></article>
+        </section>
+        <pre id="walletRaw">{}</pre>
+      </section>
+    </section>
+
+    <section id="validatorsView" class="view page">
+      <section class="panel">
+        <h2 data-i18n="validatorsTitle">Sila Validators</h2>
+        <p class="muted" data-i18n="validatorsDesc">Validator monitoring only. Key management stays outside the Explorer.</p>
+        <section class="stats small-stats">
+          <article><span data-i18n="headSlot">Head Slot</span><strong id="validatorHeadSlot">—</strong></article>
+          <article><span data-i18n="syncDistance">Sync Distance</span><strong id="validatorSyncDistance">—</strong></article>
+          <article><span data-i18n="executionOffline">Execution Offline</span><strong id="validatorElOffline">—</strong></article>
+        </section>
+      </section>
+    </section>
+
+    <section id="developersView" class="view page">
+      <section class="panel">
+        <h2 data-i18n="developersTitle">Sila Developers</h2>
+        <p class="muted" data-i18n="developersDesc">Visible Sila API contract used by this Explorer.</p>
+        <div class="dev-list">
+          <code>sila_chainId</code><code>sila_blockNumber</code><code>sila_getBlockByNumber</code><code>sila_getBlockByHash</code>
+          <code>sila_getTransactionByHash</code><code>sila_getTransactionReceipt</code><code>sila_getBalance</code><code>sila_getTransactionCount</code>
+          <code>/sila/v1/node/health</code><code>/sila/v1/node/version</code><code>/sila/v1/node/syncing</code><code>/sila/v1/beacon/headers/head</code>
+        </div>
+      </section>
+    </section>
+
+    <section id="moreView" class="view page">
+      <section class="panel">
+        <h2 data-i18n="moreTitle">More Sila Tools</h2>
+        <div class="tool-grid">
+          <article><b data-i18n="networkStatus">Network Status</b><span>Sila Local Devnet</span></article>
+          <article><b data-i18n="apiDocs">API Documentation</b><span>Sila APIs</span></article>
+          <article><b data-i18n="addressTools">Address Tools</b><span>Read-only lookup</span></article>
+        </div>
+      </section>
+    </section>
+  </main>
+
+  <footer>
+    <div>
+      <h3>SilaScan</h3>
+      <p data-i18n="footerDesc">SilaScan is a Sila block explorer and analytics interface for the Sila network.</p>
+    </div>
+    <div><b data-i18n="company">Company</b><span data-i18n="about">About</span><span data-i18n="contact">Contact</span><span data-i18n="brandAssets">Brand Assets</span></div>
+    <div><b data-i18n="community">Community</b><span data-i18n="apiDocs">API Documentation</span><span data-i18n="networkStatus">Network Status</span></div>
+    <div><b data-i18n="products">Products & Services</b><span>SilaScan</span><span>Sila API</span><span>Sila Explorer</span></div>
+  </footer>
+
+  <script src="/app.js"></script>
+</body>
+</html>
