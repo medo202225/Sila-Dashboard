@@ -1345,3 +1345,82 @@ document.addEventListener("click", (event) => {
   }
 }, true);
 // SILA_MENU_ROUTER_END
+
+// SILA_HOME_LINK_ROUTER_START
+function silaHomeText(node) {
+  return String(node ? node.textContent || "" : "").trim();
+}
+
+function silaHomeLooksLikeInteractive(node) {
+  if (!node || typeof node.closest !== "function") return false;
+  return !!node.closest("button, a, input, textarea, select, [data-block], [data-tx], [data-address], [data-sila-block-detail]");
+}
+
+function silaHomeNearestRecord(node) {
+  if (!node || typeof node.closest !== "function") return null;
+  return node.closest("tr, li, article, .block, .tx, .item, .row, .card, .panel");
+}
+
+function silaHomeInLatestArea(node) {
+  if (!node || typeof node.closest !== "function") return false;
+  const area = node.closest("section, .panel, main");
+  const text = silaHomeText(area).toLowerCase();
+  return text.includes("latest") || text.includes("recent") || text.includes("blocks") || text.includes("transactions");
+}
+
+function silaHomeFindBlockNumber(text) {
+  const withHash = String(text || "").match(/#([0-9]{1,20})/);
+  if (withHash) return withHash[1];
+
+  const plain = String(text || "").trim();
+  if (/^[0-9]{1,20}$/.test(plain)) return plain;
+
+  return null;
+}
+
+function silaHomeFindAddress(text) {
+  const match = String(text || "").match(/0x[0-9a-fA-F]{40}/);
+  return match ? match[0] : null;
+}
+
+function silaHomeFindHash(text) {
+  const match = String(text || "").match(/0x[0-9a-fA-F]{64}/);
+  return match ? match[0] : null;
+}
+
+document.addEventListener("click", (event) => {
+  if (!event.target || typeof event.target.closest !== "function") return;
+
+  if (silaHomeLooksLikeInteractive(event.target)) return;
+  if (!silaHomeInLatestArea(event.target)) return;
+
+  const targetText = silaHomeText(event.target);
+  const record = silaHomeNearestRecord(event.target);
+  const recordText = silaHomeText(record);
+
+  const hash = silaHomeFindHash(targetText) || silaHomeFindHash(recordText);
+  if (hash && typeof window.silaRouteSearchQuery === "function") {
+    event.preventDefault();
+    event.stopImmediatePropagation();
+    window.silaRouteSearchQuery(hash);
+    return;
+  }
+
+  const address = silaHomeFindAddress(targetText);
+  if (address && typeof window.silaRenderAddressDetails === "function") {
+    event.preventDefault();
+    event.stopImmediatePropagation();
+    window.silaRenderAddressDetails(address);
+    return;
+  }
+
+  const blockNumber = silaHomeFindBlockNumber(targetText);
+  if (blockNumber && typeof window.silaRenderBlockDetails === "function") {
+    event.preventDefault();
+    event.stopImmediatePropagation();
+    window.silaRenderBlockDetails(blockNumber);
+  }
+}, true);
+
+window.silaHomeFindBlockNumber = silaHomeFindBlockNumber;
+// SILA_HOME_LINK_ROUTER_END
