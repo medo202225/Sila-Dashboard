@@ -896,3 +896,99 @@ html[dir="rtl"] .sila-copy-btn {
   font-weight: 800;
 }
 /* SILA_TRANSACTIONS_PAGE_END */
+
+/* SILA_HOME_DASHBOARD_START */
+.sila-home-dashboard {
+  margin: 22px 0;
+}
+
+.sila-home-dashboard-head {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 14px;
+}
+
+.sila-home-dashboard-head h2 {
+  margin: 0;
+}
+
+.sila-home-dashboard-head p {
+  margin: 6px 0 0;
+  color: var(--muted);
+}
+
+.sila-home-metrics-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.sila-home-metric-card {
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: linear-gradient(135deg, rgba(7,132,195,.08), rgba(7,136,74,.05));
+  padding: 18px;
+  min-height: 122px;
+  cursor: default;
+  transition: transform .15s ease, border-color .15s ease, background .15s ease;
+}
+
+.sila-home-metric-card.clickable {
+  cursor: pointer;
+}
+
+.sila-home-metric-card.clickable:hover {
+  transform: translateY(-2px);
+  border-color: rgba(56,189,248,.45);
+  background: linear-gradient(135deg, rgba(7,132,195,.15), rgba(7,136,74,.09));
+}
+
+.sila-home-metric-label {
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: .04em;
+}
+
+.sila-home-metric-value {
+  margin-top: 10px;
+  color: var(--text);
+  font-size: 28px;
+  font-weight: 900;
+  overflow-wrap: anywhere;
+}
+
+.sila-home-metric-sub {
+  margin-top: 8px;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.sila-home-status-online {
+  color: var(--green);
+}
+
+.sila-home-status-warn {
+  color: var(--amber);
+}
+
+@media (max-width: 980px) {
+  .sila-home-metrics-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 640px) {
+  .sila-home-dashboard-head {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .sila-home-metrics-grid {
+    grid-template-columns: 1fr;
+  }
+}
+/* SILA_HOME_DASHBOARD_END */

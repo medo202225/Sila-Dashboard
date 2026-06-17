@@ -1424,3 +1424,153 @@ document.addEventListener("click", (event) => {
 
 window.silaHomeFindBlockNumber = silaHomeFindBlockNumber;
 // SILA_HOME_LINK_ROUTER_END
+
+// SILA_HOME_DASHBOARD_START
+function silaHomeDashboardEscape(value) {
+  return String(value === null || value === undefined ? "—" : value)
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll("\"", "&quot;")
+    .replaceAll("'", "&#39;");
+}
+
+function silaHomeDashboardShort(value) {
+  if (!value || typeof value !== "string") return "—";
+  return value.length <= 18 ? value : value.slice(0, 10) + "..." + value.slice(-8);
+}
+
+function silaHomeDashboardFindHomeRoot() {
+  const main = document.querySelector("main");
+  if (!main) return null;
+
+  const featureView = document.getElementById("featureView");
+  if (featureView && featureView.classList.contains("active-view")) return null;
+
+  const views = Array.from(document.querySelectorAll(".view"));
+  const homeView = views.find((view) => view.id !== "featureView" && view.classList.contains("active-view"))
+    || views.find((view) => view.id !== "featureView" && /latest|search|explorer/i.test(view.textContent || ""));
+
+  return homeView || main;
+}
+
+function silaHomeDashboardMetric(label, value, sub, action) {
+  const actionAttr = action ? " data-sila-home-action=\"" + silaHomeDashboardEscape(action) + "\"" : "";
+  const className = action ? "sila-home-metric-card clickable" : "sila-home-metric-card";
+
+  return ""
+    + "<article class=\"" + className + "\"" + actionAttr + ">"
+    + "  <div class=\"sila-home-metric-label\">" + silaHomeDashboardEscape(label) + "</div>"
+    + "  <div class=\"sila-home-metric-value\">" + silaHomeDashboardEscape(value) + "</div>"
+    + "  <div class=\"sila-home-metric-sub\">" + sub + "</div>"
+    + "</article>";
+}
+
+function silaHomeDashboardStatus(ok, onlineText, offlineText) {
+  return ok
+    ? "<span class=\"sila-home-status-online\">" + silaHomeDashboardEscape(onlineText) + "</span>"
+    : "<span class=\"sila-home-status-warn\">" + silaHomeDashboardEscape(offlineText) + "</span>";
+}
+
+async function silaRenderHomeDashboard() {
+  const root = silaHomeDashboardFindHomeRoot();
+  if (!root) return;
+
+  let holder = document.getElementById("silaHomeDashboard");
+  if (!holder) {
+    holder = document.createElement("section");
+    holder.id = "silaHomeDashboard";
+    holder.className = "sila-home-dashboard panel";
+
+    const firstPanel = root.querySelector(".panel");
+    if (firstPanel && firstPanel.parentNode) {
+      firstPanel.parentNode.insertBefore(holder, firstPanel);
+    } else {
+      root.insertBefore(holder, root.firstChild);
+    }
+  }
+
+  holder.innerHTML = ""
+    + "<div class=\"sila-home-dashboard-head\">"
+    + "  <div>"
+    + "    <h2>Sila Network Overview</h2>"
+    + "    <p>Live execution and consensus data from your local Sila devnet.</p>"
+    + "  </div>"
+    + "  <button type=\"button\" onclick=\"window.silaRenderHomeDashboard()\">Refresh</button>"
+    + "</div>"
+    + "<div class=\"sila-empty-state\"><div><strong>Loading Sila network overview...</strong><span>Reading live Sila RPC data.</span></div></div>";
+
+  let data;
+  try {
+    data = await fetch("/api/sila/summary", { cache: "no-store" }).then((res) => res.json());
+  } catch (error) {
+    holder.innerHTML = "<h2>Sila Network Overview</h2><p class=\"muted\">Summary API error: " + silaHomeDashboardEscape(error.message) + "</p>";
+    return;
+  }
+
+  const latestNumber = data.execution && data.execution.latestBlock ? data.execution.latestBlock.number : "—";
+  const latestHash = data.execution && data.execution.latestBlock ? data.execution.latestBlock.hash : "";
+  const txCount = data.stats ? data.stats.recentTransactionCount : 0;
+  const tps = data.stats ? data.stats.tps : "0.00";
+  const gas = data.display ? data.display.gas : "—";
+  const executionOk = !!(data.execution && data.execution.ok);
+  const consensusOk = !!(data.consensus && data.consensus.ok);
+  const headSlot = data.consensus ? data.consensus.headSlot : "—";
+  const syncDistance = data.consensus ? data.consensus.syncDistance : "—";
+
+  holder.innerHTML = ""
+    + "<div class=\"sila-home-dashboard-head\">"
+    + "  <div>"
+    + "    <h2>Sila Network Overview</h2>"
+    + "    <p>Live execution and consensus data from your local Sila devnet.</p>"
+    + "  </div>"
+    + "  <button type=\"button\" onclick=\"window.silaRenderHomeDashboard()\">Refresh</button>"
+    + "</div>"
+    + "<div class=\"sila-home-metrics-grid\">"
+    + silaHomeDashboardMetric("Latest Block", "#" + latestNumber, latestHash ? "Hash " + silaHomeDashboardEscape(silaHomeDashboardShort(latestHash)) : "Latest execution block", "latest-block")
+    + silaHomeDashboardMetric("Total Blocks", latestNumber, "Open the Sila blocks explorer", "blocks")
+    + silaHomeDashboardMetric("Recent Txns", txCount, "TPS " + silaHomeDashboardEscape(tps), "transactions")
+    + silaHomeDashboardMetric("Gas", gas, "Current Sila gas price", "")
+    + silaHomeDashboardMetric("Execution", executionOk ? "Online" : "Offline", silaHomeDashboardStatus(executionOk, "Sila execution RPC connected", "Sila execution RPC unavailable"), "")
+    + silaHomeDashboardMetric("Consensus", consensusOk ? "Online" : "Offline", silaHomeDashboardStatus(consensusOk, "Head slot " + headSlot + " / distance " + syncDistance, "Sila consensus REST unavailable"), "")
+    + "</div>";
+}
+
+document.addEventListener("click", (event) => {
+  const card = event.target.closest("[data-sila-home-action]");
+  if (!card) return;
+
+  const action = card.getAttribute("data-sila-home-action");
+
+  if (action === "latest-block") {
+    event.preventDefault();
+    event.stopImmediatePropagation();
+    fetch("/api/sila/summary", { cache: "no-store" })
+      .then((res) => res.json())
+      .then((data) => {
+        const latestNumber = data.execution && data.execution.latestBlock ? data.execution.latestBlock.number : null;
+        if (latestNumber && typeof window.silaRenderBlockDetails === "function") window.silaRenderBlockDetails(latestNumber);
+      });
+    return;
+  }
+
+  if (action === "blocks" && typeof window.silaRenderBlocksPage === "function") {
+    event.preventDefault();
+    event.stopImmediatePropagation();
+    window.silaRenderBlocksPage();
+    return;
+  }
+
+  if (action === "transactions" && typeof window.silaRenderTransactionsPage === "function") {
+    event.preventDefault();
+    event.stopImmediatePropagation();
+    window.silaRenderTransactionsPage();
+  }
+}, true);
+
+document.addEventListener("DOMContentLoaded", () => {
+  setTimeout(() => { window.silaRenderHomeDashboard(); }, 250);
+});
+
+window.silaRenderHomeDashboard = silaRenderHomeDashboard;
+// SILA_HOME_DASHBOARD_END
