@@ -867,3 +867,32 @@ html[dir="rtl"] .sila-copy-btn {
   font-size: 13px;
 }
 /* SILA_ADDRESS_DETAILS_PAGE_END */
+
+/* SILA_TRANSACTIONS_PAGE_START */
+.sila-empty-state {
+  display: grid;
+  place-items: center;
+  min-height: 220px;
+  border: 1px dashed var(--line);
+  border-radius: 16px;
+  background: rgba(100,116,139,.05);
+  text-align: center;
+  padding: 28px;
+}
+
+.sila-empty-state strong {
+  display: block;
+  margin-bottom: 8px;
+  font-size: 20px;
+}
+
+.sila-empty-state span {
+  color: var(--muted);
+}
+
+.sila-tx-table a,
+.sila-tx-table button {
+  color: var(--blue);
+  font-weight: 800;
+}
+/* SILA_TRANSACTIONS_PAGE_END */
