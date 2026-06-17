@@ -838,3 +838,32 @@ html[dir="rtl"] .sila-copy-btn {
   background: rgba(7,132,195,.08);
 }
 /* SILA_TX_DETAILS_PAGE_END */
+
+/* SILA_ADDRESS_DETAILS_PAGE_START */
+.sila-address-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: rgba(7,132,195,.10);
+  color: var(--blue);
+  font-weight: 800;
+}
+
+.sila-address-badge.contract {
+  background: rgba(7,136,74,.12);
+  color: var(--green);
+}
+
+.sila-address-badge.empty {
+  background: rgba(100,116,139,.12);
+  color: var(--muted);
+}
+
+.sila-address-note {
+  margin-top: 14px;
+  color: var(--muted);
+  font-size: 13px;
+}
+/* SILA_ADDRESS_DETAILS_PAGE_END */

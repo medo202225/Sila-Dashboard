@@ -844,3 +844,175 @@ document.addEventListener("click", (event) => {
 
 window.silaRenderTxDetails = silaRenderTxDetails;
 // SILA_TX_DETAILS_PAGE_END
+
+// SILA_ADDRESS_DETAILS_PAGE_START
+function silaAddressEscape(value) {
+  return String(value === null || value === undefined ? "—" : value)
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll("\"", "&quot;")
+    .replaceAll("'", "&#39;");
+}
+
+function silaAddressRpcValue(value) {
+  if (value === null || value === undefined) return null;
+  if (typeof value === "object" && Object.prototype.hasOwnProperty.call(value, "value")) return value.value;
+  return value;
+}
+
+function silaAddressHexToDec(value) {
+  if (!value || typeof value !== "string" || !value.startsWith("0x")) return "—";
+  try { return BigInt(value).toString(10); } catch { return "—"; }
+}
+
+function silaAddressWeiToSila(value) {
+  if (!value || typeof value !== "string" || !value.startsWith("0x")) return "—";
+  try {
+    const wei = BigInt(value);
+    const base = 1000000000000000000n;
+    const whole = wei / base;
+    const frac = (wei % base).toString().padStart(18, "0").replace(/0+$/, "");
+    return frac ? whole.toString() + "." + frac + " SILA" : whole.toString() + " SILA";
+  } catch {
+    return "—";
+  }
+}
+
+function silaAddressCodeSize(code) {
+  if (!code || typeof code !== "string" || code === "0x") return 0;
+  return Math.max(0, Math.floor((code.length - 2) / 2));
+}
+
+function silaAddressEnsureView() {
+  let view = document.getElementById("featureView");
+  if (view) return view;
+
+  view = document.createElement("section");
+  view.id = "featureView";
+  view.className = "view page";
+  document.querySelector("main").appendChild(view);
+  return view;
+}
+
+function silaAddressShowView() {
+  document.querySelectorAll(".view").forEach((node) => node.classList.remove("active-view"));
+  const view = silaAddressEnsureView();
+  view.classList.add("active-view");
+  return view;
+}
+
+function silaAddressRow(label, value, mono, copy) {
+  const safeValue = silaAddressEscape(value);
+  const copyButton = copy && value && value !== "—"
+    ? " <button class=\"sila-copy-btn\" type=\"button\" data-copy=\"" + safeValue + "\">Copy</button>"
+    : "";
+
+  return ""
+    + "<div class=\"sila-detail-label\">" + silaAddressEscape(label) + "</div>"
+    + "<div class=\"sila-detail-value" + (mono ? " mono" : "") + "\">" + safeValue + copyButton + "</div>";
+}
+
+function silaAddressRowHtml(label, htmlValue) {
+  return ""
+    + "<div class=\"sila-detail-label\">" + silaAddressEscape(label) + "</div>"
+    + "<div class=\"sila-detail-value\">" + htmlValue + "</div>";
+}
+
+function silaAddressTypeBadge(code) {
+  const size = silaAddressCodeSize(code);
+  if (size > 0) return "<span class=\"sila-address-badge contract\">Contract</span>";
+  return "<span class=\"sila-address-badge\">Externally Owned Account</span>";
+}
+
+async function silaRenderAddressDetails(address) {
+  const view = silaAddressShowView();
+
+  view.innerHTML = ""
+    + "<section class=\"sila-detail-hero\">"
+    + "  <div>"
+    + "    <small>Address Details</small>"
+    + "    <h1>Sila Address</h1>"
+    + "    <p class=\"muted\">Loading Sila address details...</p>"
+    + "  </div>"
+    + "</section>";
+
+  let data;
+
+  try {
+    data = await fetch("/api/sila/address/" + encodeURIComponent(address), { cache: "no-store" }).then((res) => res.json());
+  } catch (error) {
+    view.innerHTML = "<section class=\"panel\"><h2>Sila Address</h2><p class=\"muted\">Address API error: " + silaAddressEscape(error.message) + "</p></section>";
+    return;
+  }
+
+  if (!data || !data.ok) {
+    view.innerHTML = ""
+      + "<section class=\"sila-detail-hero\">"
+      + "  <div>"
+      + "    <small>Address Details</small>"
+      + "    <h1>Sila Address</h1>"
+      + "    <p class=\"muted\">This Sila address could not be loaded from the current node.</p>"
+      + "  </div>"
+      + "</section>"
+      + "<section class=\"panel sila-detail-card\">"
+      + "  <h2>Lookup Result</h2>"
+      + "  <div class=\"sila-detail-grid\">"
+      + silaAddressRow("Address", address, true, true)
+      + silaAddressRow("Status", "Not available", false, false)
+      + "  </div>"
+      + "  <pre>" + silaAddressEscape(JSON.stringify(data, null, 2)) + "</pre>"
+      + "</section>";
+    return;
+  }
+
+  const balanceHex = data.balanceWeiHex || silaAddressRpcValue(data.balance);
+  const nonceHex = data.nonceHex || silaAddressRpcValue(data.transactionCount || data.nonce);
+  const code = silaAddressRpcValue(data.code) || (data.checks && data.checks.code ? data.checks.code.value : null) || "0x";
+  const codeSize = silaAddressCodeSize(code);
+  const displayAddress = data.address || data.query || address;
+
+  view.innerHTML = ""
+    + "<section class=\"sila-detail-hero\">"
+    + "  <div>"
+    + "    <small>Address Details</small>"
+    + "    <h1>Sila Address</h1>"
+    + "    <p class=\"muted mono\">" + silaAddressEscape(displayAddress) + "</p>"
+    + "  </div>"
+    + "  <div class=\"sila-detail-actions\">"
+    + "    <button type=\"button\" data-copy=\"" + silaAddressEscape(displayAddress) + "\">Copy Address</button>"
+    + "  </div>"
+    + "</section>"
+    + "<section class=\"panel sila-detail-card\">"
+    + "  <h2>Overview</h2>"
+    + "  <div class=\"sila-detail-grid\">"
+    + silaAddressRow("Address", displayAddress, true, true)
+    + silaAddressRowHtml("Type", silaAddressTypeBadge(code))
+    + silaAddressRow("Balance", balanceHex ? silaAddressWeiToSila(balanceHex) : "—", false, false)
+    + silaAddressRow("Balance Wei", balanceHex ? silaAddressHexToDec(balanceHex) : "—", false, false)
+    + silaAddressRow("Nonce", nonceHex ? silaAddressHexToDec(nonceHex) : "—", false, false)
+    + silaAddressRow("Contract Code Size", codeSize + " bytes", false, false)
+    + silaAddressRow("Code", code && codeSize > 0 ? code : "0x", true, code && codeSize > 0)
+    + "  </div>"
+    + "  <p class=\"sila-address-note\">Transactions list requires a Sila indexer. This page uses live Sila RPC state only.</p>"
+    + "</section>"
+    + "<section class=\"panel sila-detail-card\">"
+    + "  <h2>Raw Sila Address JSON</h2>"
+    + "  <pre>" + silaAddressEscape(JSON.stringify(data, null, 2)) + "</pre>"
+    + "</section>";
+}
+
+document.addEventListener("click", (event) => {
+  const addressButton = event.target.closest("[data-address]");
+  if (!addressButton) return;
+
+  const address = addressButton.getAttribute("data-address");
+  if (!address) return;
+
+  event.preventDefault();
+  event.stopImmediatePropagation();
+  silaRenderAddressDetails(address);
+}, true);
+
+window.silaRenderAddressDetails = silaRenderAddressDetails;
+// SILA_ADDRESS_DETAILS_PAGE_END
