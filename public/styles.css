@@ -1195,3 +1195,103 @@ html[dir="rtl"] .sila-copy-btn {
   }
 }
 /* SILA_CONSENSUS_PAGE_END */
+
+/* SILA_VALIDATOR_READINESS_START */
+.sila-readiness-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  margin-top: 16px;
+}
+
+.sila-readiness-card {
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 14px;
+  background: rgba(7, 35, 24, .68);
+}
+
+.sila-readiness-card.ok {
+  border-color: rgba(74, 222, 128, .28);
+}
+
+.sila-readiness-card.warn {
+  border-color: rgba(245, 158, 11, .32);
+}
+
+.sila-readiness-top {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  align-items: center;
+}
+
+.sila-readiness-title {
+  font-weight: 900;
+}
+
+.sila-readiness-pill {
+  border-radius: 999px;
+  padding: 4px 8px;
+  font-size: 11px;
+  font-weight: 900;
+}
+
+.sila-readiness-pill.ok {
+  color: var(--green);
+  background: rgba(7,136,74,.12);
+}
+
+.sila-readiness-pill.warn {
+  color: var(--amber);
+  background: rgba(217,144,0,.12);
+}
+
+.sila-readiness-card p {
+  margin: 9px 0 0;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.sila-validator-roadmap {
+  display: grid;
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.sila-validator-roadmap-item {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 12px;
+  background: rgba(100,116,139,.05);
+}
+
+.sila-validator-roadmap-item strong {
+  display: block;
+}
+
+.sila-validator-roadmap-item span {
+  color: var(--muted);
+  font-size: 13px;
+}
+
+@media (max-width: 980px) {
+  .sila-readiness-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 620px) {
+  .sila-readiness-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .sila-validator-roadmap-item {
+    flex-direction: column;
+  }
+}
+/* SILA_VALIDATOR_READINESS_END */
