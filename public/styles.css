@@ -595,3 +595,83 @@ html[dir="rtl"] .feed-side { text-align: left; }
   .page-search { grid-template-columns: 40px 1fr; }
   .page-search button { grid-column: 1 / -1; margin: 0 8px 8px; }
 }
+
+
+/* SILA_REAL_BLOCKS_PAGE_START */
+.sila-blocks-toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  margin: 18px 0;
+}
+
+.sila-blocks-toolbar .left {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.sila-blocks-toolbar small {
+  color: var(--muted);
+}
+
+.sila-blocks-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.sila-blocks-actions button {
+  border: 1px solid var(--line);
+  background: var(--panel);
+  color: var(--text);
+  border-radius: 8px;
+  padding: 9px 12px;
+  cursor: pointer;
+}
+
+.sila-blocks-actions button:hover {
+  color: var(--blue);
+  background: rgba(7, 132, 195, 0.08);
+}
+
+.sila-blocks-table-wrap {
+  overflow: auto;
+}
+
+.sila-blocks-table {
+  min-width: 980px;
+}
+
+.sila-blocks-table td.mono,
+.sila-blocks-table th.mono {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+}
+
+.sila-blocks-table .block-number {
+  color: var(--blue);
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.sila-blocks-table .hash-link {
+  color: var(--blue);
+  cursor: pointer;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+}
+
+.sila-empty-note {
+  padding: 18px;
+  border: 1px dashed var(--line);
+  border-radius: 12px;
+  color: var(--muted);
+}
+
+@media (max-width: 760px) {
+  .sila-blocks-toolbar {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+}
+/* SILA_REAL_BLOCKS_PAGE_END */

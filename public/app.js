@@ -376,3 +376,153 @@ document.body.classList.toggle("developer-json-hidden", !state.rawJson);
 byId("rawJsonState").textContent = state.rawJson ? "SHOW" : "HIDE";
 restartAutoRefresh();
 refresh();
+
+
+// SILA_REAL_BLOCKS_PAGE_START
+let silaBlocksNextStart = null;
+let silaBlocksCurrentStart = null;
+
+function silaBlocksEscape(value) {
+  return String(value === null || value === undefined ? "" : value)
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll("\"", "&quot;")
+    .replaceAll("'", "&#39;");
+}
+
+function silaBlocksShort(value) {
+  if (!value || typeof value !== "string") return "—";
+  return value.length <= 18 ? value : value.slice(0, 10) + "..." + value.slice(-8);
+}
+
+function silaBlocksAge(timestamp) {
+  if (!timestamp) return "—";
+  const seconds = Math.max(0, Math.floor(Date.now() / 1000) - Number(timestamp));
+  if (!Number.isFinite(seconds)) return "—";
+  if (seconds < 60) return seconds + " secs ago";
+  const minutes = Math.floor(seconds / 60);
+  if (minutes < 60) return minutes + " mins ago";
+  const hours = Math.floor(minutes / 60);
+  return hours + " hrs ago";
+}
+
+function silaBlocksEnsureFeatureView() {
+  let view = document.getElementById("featureView");
+  if (view) return view;
+
+  view = document.createElement("section");
+  view.id = "featureView";
+  view.className = "view page";
+  document.querySelector("main").appendChild(view);
+  return view;
+}
+
+function silaBlocksShowFeatureView() {
+  document.querySelectorAll(".view").forEach((node) => node.classList.remove("active-view"));
+  const view = silaBlocksEnsureFeatureView();
+  view.classList.add("active-view");
+  return view;
+}
+
+async function silaRenderBlocksPage(start) {
+  const view = silaBlocksShowFeatureView();
+  view.innerHTML = ""
+    + "<section class=\"feature-hero\">"
+    + "  <small>Blockchain</small>"
+    + "  <h1>Sila Blocks</h1>"
+    + "  <p>View the latest blocks validated on the Sila network.</p>"
+    + "</section>"
+    + "<section class=\"panel\" style=\"margin-top:20px\">"
+    + "  <div class=\"sila-blocks-toolbar\">"
+    + "    <div class=\"left\">"
+    + "      <h2 style=\"margin:0\">Latest Sila Blocks</h2>"
+    + "      <small id=\"silaBlocksMeta\">Loading Sila blocks...</small>"
+    + "    </div>"
+    + "    <div class=\"sila-blocks-actions\">"
+    + "      <button type=\"button\" id=\"silaBlocksRefresh\">Refresh</button>"
+    + "      <button type=\"button\" id=\"silaBlocksOlder\">Older Blocks</button>"
+    + "    </div>"
+    + "  </div>"
+    + "  <div id=\"silaBlocksContent\" class=\"sila-blocks-table-wrap\"><div class=\"sila-empty-note\">Loading...</div></div>"
+    + "</section>";
+
+  const query = start ? "?limit=25&start=" + encodeURIComponent(start) : "?limit=25";
+  let data;
+
+  try {
+    data = await fetch("/api/sila/blocks" + query, { cache: "no-store" }).then((res) => res.json());
+  } catch (error) {
+    document.getElementById("silaBlocksContent").innerHTML = "<div class=\"sila-empty-note\">Sila blocks API error: " + silaBlocksEscape(error.message) + "</div>";
+    return;
+  }
+
+  silaBlocksNextStart = data.nextStart || null;
+  silaBlocksCurrentStart = data.startBlock || null;
+
+  const meta = document.getElementById("silaBlocksMeta");
+  if (meta) {
+    meta.textContent = data.ok ? "Showing " + data.count + " blocks from #" + data.startBlock : "Unable to load Sila blocks";
+  }
+
+  const content = document.getElementById("silaBlocksContent");
+
+  if (!data.ok || !Array.isArray(data.blocks) || data.blocks.length === 0) {
+    content.innerHTML = "<div class=\"sila-empty-note\">No Sila blocks available.</div>";
+  } else {
+    content.innerHTML = ""
+      + "<table class=\"sila-blocks-table\">"
+      + "  <thead>"
+      + "    <tr>"
+      + "      <th>Block</th>"
+      + "      <th>Age</th>"
+      + "      <th>Txn</th>"
+      + "      <th>Gas Used</th>"
+      + "      <th>Gas Limit</th>"
+      + "      <th>Base Fee</th>"
+      + "      <th>Fee Recipient</th>"
+      + "      <th>Hash</th>"
+      + "    </tr>"
+      + "  </thead>"
+      + "  <tbody>"
+      + data.blocks.map((block) => ""
+      + "    <tr>"
+      + "      <td><span class=\"block-number\" data-block=\"" + silaBlocksEscape(block.number) + "\">#" + silaBlocksEscape(block.number) + "</span></td>"
+      + "      <td>" + silaBlocksEscape(silaBlocksAge(block.timestamp)) + "</td>"
+      + "      <td>" + silaBlocksEscape(block.transactionCount || 0) + "</td>"
+      + "      <td>" + silaBlocksEscape(block.gasUsed || "0") + "</td>"
+      + "      <td>" + silaBlocksEscape(block.gasLimit || "—") + "</td>"
+      + "      <td>" + silaBlocksEscape(block.baseFeePerGas || "—") + " wei</td>"
+      + "      <td class=\"mono\">" + silaBlocksEscape(block.minerShort || silaBlocksShort(block.miner)) + "</td>"
+      + "      <td><span class=\"hash-link\" data-block=\"" + silaBlocksEscape(block.hash) + "\">" + silaBlocksEscape(block.hashShort || silaBlocksShort(block.hash)) + "</span></td>"
+      + "    </tr>").join("")
+      + "  </tbody>"
+      + "</table>";
+  }
+
+  const refresh = document.getElementById("silaBlocksRefresh");
+  if (refresh) refresh.addEventListener("click", () => silaRenderBlocksPage(null));
+
+  const older = document.getElementById("silaBlocksOlder");
+  if (older) {
+    older.disabled = !silaBlocksNextStart;
+    older.addEventListener("click", () => {
+      if (silaBlocksNextStart) silaRenderBlocksPage(silaBlocksNextStart);
+    });
+  }
+}
+
+document.addEventListener("click", (event) => {
+  const button = event.target.closest("[data-page]");
+  if (!button) return;
+
+  const page = button.getAttribute("data-page");
+  if (page !== "blocks") return;
+
+  event.preventDefault();
+  event.stopImmediatePropagation();
+  silaRenderBlocksPage(null);
+}, true);
+
+window.silaRenderBlocksPage = silaRenderBlocksPage;
+// SILA_REAL_BLOCKS_PAGE_END

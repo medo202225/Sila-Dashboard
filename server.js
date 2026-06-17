@@ -340,9 +340,64 @@ function serveStatic(req, res) {
   });
 }
 
+
+// SILA_BLOCKS_PAGE_START
+async function blocksPage(query) {
+  const limitRaw = Number(query.searchParams.get("limit") || 25);
+  const limit = Math.max(1, Math.min(50, Number.isFinite(limitRaw) ? limitRaw : 25));
+
+  const startParam = query.searchParams.get("start");
+  let startHex = null;
+
+  if (startParam) {
+    startHex = startParam.startsWith("0x") ? startParam : decToHex(startParam);
+  } else {
+    const latest = await rpc("sila_blockNumber");
+    if (!latest.ok || !latest.value) {
+      return { ok: false, error: latest.error || "Unable to read latest Sila block number", blocks: [] };
+    }
+    startHex = latest.value;
+  }
+
+  const startDecRaw = hexToDec(startHex);
+  if (startDecRaw === null) {
+    return { ok: false, error: "Invalid Sila start block", blocks: [] };
+  }
+
+  const startDec = BigInt(startDecRaw);
+  const jobs = [];
+
+  for (let i = 0n; i < BigInt(limit); i++) {
+    const n = startDec - i;
+    if (n < 0n) break;
+    jobs.push(rpc("sila_getBlockByNumber", [decToHex(n), false]));
+  }
+
+  const results = await Promise.all(jobs);
+  const blocks = results
+    .filter((item) => item.ok && item.value)
+    .map((item) => blockView(item.value));
+
+  const last = blocks.length ? BigInt(blocks[blocks.length - 1].number) : startDec;
+  const nextStart = last > 0n ? (last - 1n).toString(10) : null;
+
+  return {
+    ok: true,
+    generatedAt: new Date().toISOString(),
+    chain: "Sila",
+    startBlock: startDec.toString(10),
+    nextStart,
+    limit,
+    count: blocks.length,
+    blocks
+  };
+}
+// SILA_BLOCKS_PAGE_END
+
 const server = http.createServer(async (req, res) => {
   const url = new URL(req.url, "http://" + req.headers.host);
   try {
+    if (url.pathname === "/api/sila/blocks") return sendJson(res, 200, await blocksPage(url));
     if (url.pathname === "/api/sila/summary") return sendJson(res, 200, await getSummary());
     if (url.pathname.startsWith("/api/sila/block/")) return sendJson(res, 200, await getBlock(url.pathname.slice("/api/sila/block/".length)));
     if (url.pathname.startsWith("/api/sila/tx/")) return sendJson(res, 200, await getTx(url.pathname.slice("/api/sila/tx/".length)));
