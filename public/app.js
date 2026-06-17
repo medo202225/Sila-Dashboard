@@ -1727,3 +1727,257 @@ document.addEventListener("click", (event) => {
 
 window.silaRenderConsensusPage = silaRenderConsensusPage;
 // SILA_CONSENSUS_PAGE_END
+
+// SILA_VALIDATOR_READINESS_START
+function silaValidatorEscape(value) {
+  return String(value === null || value === undefined ? "—" : value)
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll("\"", "&quot;")
+    .replaceAll("'", "&#39;");
+}
+
+function silaValidatorBool(value) {
+  return value ? "Yes" : "No";
+}
+
+function silaValidatorOk(value) {
+  return !!value;
+}
+
+function silaValidatorStatusHtml(ok) {
+  return ok ? "<span class=\"sila-consensus-ok\">Online</span>" : "<span class=\"sila-consensus-warn\">Offline</span>";
+}
+
+function silaValidatorReadinessCard(title, ok, message) {
+  const cls = ok ? "ok" : "warn";
+  const label = ok ? "Ready" : "Check";
+
+  return ""
+    + "<article class=\"sila-readiness-card " + cls + "\">"
+    + "  <div class=\"sila-readiness-top\">"
+    + "    <div class=\"sila-readiness-title\">" + silaValidatorEscape(title) + "</div>"
+    + "    <div class=\"sila-readiness-pill " + cls + "\">" + label + "</div>"
+    + "  </div>"
+    + "  <p>" + silaValidatorEscape(message) + "</p>"
+    + "</article>";
+}
+
+function silaValidatorRow(label, value, mono, copy) {
+  const safeValue = silaValidatorEscape(value);
+  const copyButton = copy && value && value !== "—"
+    ? " <button class=\"sila-copy-btn\" type=\"button\" data-copy=\"" + safeValue + "\">Copy</button>"
+    : "";
+
+  return ""
+    + "<div class=\"sila-detail-label\">" + silaValidatorEscape(label) + "</div>"
+    + "<div class=\"sila-detail-value" + (mono ? " mono" : "") + "\">" + safeValue + copyButton + "</div>";
+}
+
+function silaValidatorRowHtml(label, htmlValue) {
+  return ""
+    + "<div class=\"sila-detail-label\">" + silaValidatorEscape(label) + "</div>"
+    + "<div class=\"sila-detail-value\">" + htmlValue + "</div>";
+}
+
+function silaValidatorMini(label, value, html) {
+  return ""
+    + "<article class=\"sila-consensus-mini\">"
+    + "  <span>" + silaValidatorEscape(label) + "</span>"
+    + "  <strong>" + (html ? value : silaValidatorEscape(value)) + "</strong>"
+    + "</article>";
+}
+
+function silaValidatorEnsureView() {
+  let view = document.getElementById("featureView");
+  if (view) return view;
+
+  view = document.createElement("section");
+  view.id = "featureView";
+  view.className = "view page";
+  document.querySelector("main").appendChild(view);
+  return view;
+}
+
+function silaValidatorShowView() {
+  document.querySelectorAll(".view").forEach((node) => node.classList.remove("active-view"));
+  const view = silaValidatorEnsureView();
+  view.classList.add("active-view");
+  return view;
+}
+
+function silaValidatorRoadmapItem(title, detail, status) {
+  return ""
+    + "<div class=\"sila-validator-roadmap-item\">"
+    + "  <div><strong>" + silaValidatorEscape(title) + "</strong><span>" + silaValidatorEscape(detail) + "</span></div>"
+    + "  <span>" + silaValidatorEscape(status) + "</span>"
+    + "</div>";
+}
+
+async function silaRenderConsensusPageEnhanced() {
+  const view = silaValidatorShowView();
+
+  view.innerHTML = ""
+    + "<section class=\"sila-detail-hero\">"
+    + "  <div>"
+    + "    <small>Sila Consensus</small>"
+    + "    <h1>Validators / Consensus</h1>"
+    + "    <p class=\"muted\">Loading Sila-Prysm consensus data...</p>"
+    + "  </div>"
+    + "</section>";
+
+  let data;
+
+  try {
+    data = await fetch("/api/sila/consensus", { cache: "no-store" }).then((res) => res.json());
+  } catch (error) {
+    view.innerHTML = "<section class=\"panel\"><h2>Sila Consensus</h2><p class=\"muted\">Consensus API error: " + silaValidatorEscape(error.message) + "</p></section>";
+    return;
+  }
+
+  const consensusOnline = silaValidatorOk(data.ok);
+  const healthOk = Number(data.healthStatus) === 200;
+  const syncOk = !data.isSyncing && String(data.syncDistance || "0") === "0";
+  const elOk = !data.elOffline;
+  const canonicalOk = !!data.canonical;
+  const optimisticOk = !data.executionOptimistic && !data.isOptimistic;
+  const headSlot = data.headSlot || "—";
+  const syncDistance = data.syncDistance || "—";
+
+  view.innerHTML = ""
+    + "<section class=\"sila-detail-hero\">"
+    + "  <div>"
+    + "    <small>Sila Consensus</small>"
+    + "    <h1>Validators / Consensus</h1>"
+    + "    <p class=\"muted\">Live consensus-layer data from Sila-Prysm.</p>"
+    + "  </div>"
+    + "  <div class=\"sila-detail-actions\">"
+    + "    <button type=\"button\" onclick=\"window.silaRenderConsensusPage()\">Refresh</button>"
+    + "  </div>"
+    + "</section>"
+    + "<section class=\"panel sila-detail-card\">"
+    + "  <h2>Consensus Overview</h2>"
+    + "  <div class=\"sila-consensus-grid\">"
+    + silaValidatorMini("Status", silaValidatorStatusHtml(consensusOnline), true)
+    + silaValidatorMini("Head Slot", headSlot, false)
+    + silaValidatorMini("Sync Distance", syncDistance, false)
+    + silaValidatorMini("EL Offline", silaValidatorBool(data.elOffline), false)
+    + "  </div>"
+    + "</section>"
+    + "<section class=\"panel sila-detail-card\">"
+    + "  <h2>Validator Readiness</h2>"
+    + "  <div class=\"sila-readiness-grid\">"
+    + silaValidatorReadinessCard("Consensus REST", consensusOnline && healthOk, healthOk ? "Sila-Prysm health endpoint is responding with HTTP 200." : "Sila-Prysm health endpoint is not reporting HTTP 200.")
+    + silaValidatorReadinessCard("Execution Link", elOk, elOk ? "Consensus reports execution layer is connected." : "Consensus reports execution layer is offline.")
+    + silaValidatorReadinessCard("Sync State", syncOk, syncOk ? "Node is synced with sync distance 0." : "Node is still syncing or sync distance is non-zero.")
+    + silaValidatorReadinessCard("Canonical Head", canonicalOk, canonicalOk ? "Head header is canonical." : "Head header is not confirmed canonical.")
+    + silaValidatorReadinessCard("Optimistic State", optimisticOk, optimisticOk ? "Head is not optimistic." : "Head is optimistic; execution confirmation is still pending.")
+    + silaValidatorReadinessCard("Finality", data.finalized === true, data.finalized ? "Head header is finalized." : "Head header is not finalized yet. This can be normal on a short-lived devnet.")
+    + "  </div>"
+    + "</section>"
+    + "<section class=\"panel sila-detail-card\">"
+    + "  <h2>Sila-Prysm Details</h2>"
+    + "  <div class=\"sila-detail-grid\">"
+    + silaValidatorRowHtml("Status", silaValidatorStatusHtml(consensusOnline))
+    + silaValidatorRow("Health Status", data.healthStatus || "—", false, false)
+    + silaValidatorRow("Version", data.version || "—", false, false)
+    + silaValidatorRow("Head Slot", headSlot, false, false)
+    + silaValidatorRow("Sync Distance", syncDistance, false, false)
+    + silaValidatorRow("Is Syncing", silaValidatorBool(data.isSyncing), false, false)
+    + silaValidatorRow("EL Offline", silaValidatorBool(data.elOffline), false, false)
+    + silaValidatorRow("Is Optimistic", silaValidatorBool(data.isOptimistic), false, false)
+    + silaValidatorRow("Execution Optimistic", silaValidatorBool(data.executionOptimistic), false, false)
+    + silaValidatorRow("Canonical Head", silaValidatorBool(data.canonical), false, false)
+    + silaValidatorRow("Finalized", silaValidatorBool(data.finalized), false, false)
+    + silaValidatorRow("Proposer Index", data.proposerIndex || "—", false, false)
+    + silaValidatorRow("Head Root", data.headRoot || "—", true, !!data.headRoot)
+    + silaValidatorRow("Parent Root", data.parentRoot || "—", true, !!data.parentRoot)
+    + silaValidatorRow("State Root", data.stateRoot || "—", true, !!data.stateRoot)
+    + silaValidatorRow("Body Root", data.bodyRoot || "—", true, !!data.bodyRoot)
+    + silaValidatorRow("Head Block Status", data.headBlockStatus || "—", false, false)
+    + "  </div>"
+    + "</section>"
+    + "<section class=\"panel sila-detail-card\">"
+    + "  <h2>Validator Registry Roadmap</h2>"
+    + "  <div class=\"sila-validator-roadmap\">"
+    + silaValidatorRoadmapItem("Validator summary", "Active / pending / exited validator counts from Sila-Prysm.", "Next endpoint")
+    + silaValidatorRoadmapItem("Validator list", "Paginated validators with index, balance, status, and pubkey.", "Next endpoint")
+    + silaValidatorRoadmapItem("Attestations / duties", "Slot and epoch duties once the validator API layer is wired.", "Future")
+    + "  </div>"
+    + "</section>"
+    + "<section class=\"panel sila-detail-card\">"
+    + "  <h2>Raw Sila Consensus JSON</h2>"
+    + "  <pre>" + silaValidatorEscape(JSON.stringify(data.raw || data, null, 2)) + "</pre>"
+    + "</section>";
+}
+
+window.silaRenderConsensusPage = silaRenderConsensusPageEnhanced;
+// SILA_VALIDATOR_READINESS_END
+
+// SILA_CONSENSUS_EXPOSE_FIX_START
+(function () {
+  function escapeHtml(value) {
+    return String(value === null || value === undefined ? "—" : value)
+      .replaceAll("&", "&amp;")
+      .replaceAll("<", "&lt;")
+      .replaceAll(">", "&gt;")
+      .replaceAll("\"", "&quot;")
+      .replaceAll("'", "&#39;");
+  }
+
+  async function fallbackConsensusPage() {
+    const feature = document.getElementById("featureView") || document.querySelector("main");
+    if (!feature) return;
+
+    document.querySelectorAll(".view").forEach((node) => node.classList.remove("active-view"));
+    feature.classList.add("active-view");
+
+    feature.innerHTML = ""
+      + "<section class=\"sila-detail-hero\">"
+      + "  <div>"
+      + "    <small>Sila Consensus</small>"
+      + "    <h1>Validators / Consensus</h1>"
+      + "    <p class=\"muted\">Loading Sila-Prysm consensus data...</p>"
+      + "  </div>"
+      + "</section>";
+
+    let data;
+    try {
+      data = await fetch("/api/sila/consensus", { cache: "no-store" }).then((res) => res.json());
+    } catch (error) {
+      feature.innerHTML = "<section class=\"panel\"><h2>Sila Consensus</h2><p class=\"muted\">Consensus API error: " + escapeHtml(error.message) + "</p></section>";
+      return;
+    }
+
+    const status = data.ok ? "<span class=\"sila-consensus-ok\">Online</span>" : "<span class=\"sila-consensus-warn\">Offline</span>";
+
+    feature.innerHTML = ""
+      + "<section class=\"sila-detail-hero\">"
+      + "  <div>"
+      + "    <small>Sila Consensus</small>"
+      + "    <h1>Validators / Consensus</h1>"
+      + "    <p class=\"muted\">Live consensus-layer data from Sila-Prysm.</p>"
+      + "  </div>"
+      + "  <div class=\"sila-detail-actions\"><button type=\"button\" onclick=\"window.silaRenderConsensusPage()\">Refresh</button></div>"
+      + "</section>"
+      + "<section class=\"panel sila-detail-card\">"
+      + "  <h2>Consensus Overview</h2>"
+      + "  <div class=\"sila-consensus-grid\">"
+      + "    <article class=\"sila-consensus-mini\"><span>Status</span><strong>" + status + "</strong></article>"
+      + "    <article class=\"sila-consensus-mini\"><span>Head Slot</span><strong>" + escapeHtml(data.headSlot) + "</strong></article>"
+      + "    <article class=\"sila-consensus-mini\"><span>Sync Distance</span><strong>" + escapeHtml(data.syncDistance) + "</strong></article>"
+      + "    <article class=\"sila-consensus-mini\"><span>EL Offline</span><strong>" + escapeHtml(data.elOffline ? "Yes" : "No") + "</strong></article>"
+      + "  </div>"
+      + "</section>"
+      + "<section class=\"panel sila-detail-card\">"
+      + "  <h2>Sila-Prysm Details</h2>"
+      + "  <pre>" + escapeHtml(JSON.stringify(data, null, 2)) + "</pre>"
+      + "</section>";
+  }
+
+  if (typeof window.silaRenderConsensusPage !== "function") {
+    window.silaRenderConsensusPage = fallbackConsensusPage;
+  }
+})();
+// SILA_CONSENSUS_EXPOSE_FIX_END
