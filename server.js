@@ -233,8 +233,8 @@ async function getSummary() {
 
   const latest = latestBlock.ok ? blockView(latestBlock.value) : null;
   const blocks = await getRecentBlocks(blockNumber.value, false);
-  const fullBlocks = fullLatestBlock.ok ? [blockView(fullLatestBlock.value)] : blocks;
-  const txs = txsFromBlocks(fullBlocks);
+  const transactionScan = await transactionsPage(new URL("http://127.0.0.1/api/sila/transactions?limit=25&blocks=500"));
+  const txs = transactionScan.ok && Array.isArray(transactionScan.transactions) ? transactionScan.transactions : [];
   const sync = clSyncing.ok && clSyncing.value && clSyncing.value.data ? clSyncing.value.data : null;
   const executionOk = chainId.ok && blockNumber.ok && latestBlock.ok && clientVersion.ok && networkVersion.ok;
   const consensusOk = clHealth.ok && clVersion.ok && clSyncing.ok && clHead.ok && clHeadBlock.ok;
