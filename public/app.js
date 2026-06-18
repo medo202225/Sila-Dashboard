@@ -994,7 +994,7 @@ async function silaRenderAddressDetails(address) {
     + silaAddressRow("Contract Code Size", codeSize + " bytes", false, false)
     + silaAddressRow("Code", code && codeSize > 0 ? code : "0x", true, code && codeSize > 0)
     + "  </div>"
-        + "  <p class=\"sila-address-note\">Recent Sila transactions scanned from live execution-layer blocks.</p>"
+    + "  <p class=\"sila-address-note\">Recent Sila transactions scanned from live execution-layer blocks.</p>"
     + "  <h2>Recent Transactions</h2>"
     + silaAddressTxRows(data.recentTransactions || [])
     + "</section>"

@@ -308,25 +308,49 @@ async function getTx(hash) {
 
 async function getAddress(address) {
   const clean = normalizeHash(address);
-  if (!isAddress(clean)) return { ok: false, query: address, error: "Invalid Sila address" };
+  const isValidAddress = /^0x[0-9a-fA-F]{40}$/.test(clean);
 
-  const [balance, nonce, txScan] = await Promise.all([
+  if (!isValidAddress) {
+    return { ok: false, query: address, address: clean, error: "Invalid Sila address" };
+  }
+
+  const [balance, nonce, code, txScan] = await Promise.all([
     rpc("sila_getBalance", [clean, "latest"]),
     rpc("sila_getTransactionCount", [clean, "latest"]),
+    rpc("sila_getCode", [clean, "latest"]),
     silaAddressTransactions(clean, 25, 500)
   ]);
 
+  const balanceHex = balance.ok && balance.value ? balance.value : "0x0";
+  const nonceHex = nonce.ok && nonce.value ? nonce.value : "0x0";
+  const codeHex = code.ok && code.value ? code.value : "0x";
+  const codeSize = codeHex && codeHex !== "0x" ? Math.max(0, (codeHex.length - 2) / 2) : 0;
+
   return {
-    ok: balance.ok || nonce.ok,
-    query: address,
+    ok: balance.ok || nonce.ok || code.ok,
+    query: clean,
     address: clean,
+
     balance,
-    balanceWei: balance.ok && balance.value ? hexToDec(balance.value).toString() : null,
+    balanceWeiHex: balanceHex,
+    balanceWei: hexToDec(balanceHex).toString(),
+    balanceSila: weiToSilaString(balanceHex),
+
     nonce,
-    transactionCount: nonce.ok && nonce.value ? hexToDec(nonce.value).toString() : null,
+    nonceHex,
+    nonceValue: hexToDec(nonceHex).toString(),
+    transactionCount: hexToDec(nonceHex).toString(),
+
+    code,
+    codeHex,
+    codeSize,
+    isContract: code.ok && codeHex !== "0x",
+
     recentTransactionCount: txScan.ok ? txScan.count : 0,
     recentTransactions: txScan.ok ? txScan.transactions : [],
-    transactionScan: txScan
+    transactionScan: txScan,
+
+    checks: { balance, nonce, code, transactionScan: txScan }
   };
 }
 
