@@ -24,6 +24,14 @@ function sendJson(res, status, value) {
   res.end(JSON.stringify(value, null, 2));
 }
 
+
+function normalizeHash(value) {
+  try {
+    return decodeURIComponent(String(value || "")).trim().toLowerCase();
+  } catch (_) {
+    return String(value || "").trim().toLowerCase();
+  }
+}
 function hexToDec(hex) {
   if (typeof hex !== "string" || !hex.startsWith("0x")) return null;
   try { return BigInt(hex).toString(10); } catch { return null; }
