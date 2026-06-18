@@ -726,6 +726,69 @@ function silaBlockTxRows(block) {
     + "</section>";
 }
 // SILA_BLOCK_TXS_RENDER_END
+
+// SILA_COPY_HELPER_START
+function silaCopyEscape(value) {
+  return String(value === null || value === undefined ? "" : value)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
+}
+
+function silaCopyButton(value) {
+  const text = String(value === null || value === undefined ? "" : value);
+  if (!text || text === "—") return "";
+  return " <button type=\"button\" class=\"sila-copy-btn\" data-copy=\"" + silaCopyEscape(text) + "\">Copy</button>";
+}
+
+async function silaCopyText(value, button) {
+  const text = String(value || "");
+  if (!text) return;
+
+  try {
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      await navigator.clipboard.writeText(text);
+    } else {
+      const area = document.createElement("textarea");
+      area.value = text;
+      area.setAttribute("readonly", "readonly");
+      area.style.position = "fixed";
+      area.style.left = "-9999px";
+      document.body.appendChild(area);
+      area.select();
+      document.execCommand("copy");
+      document.body.removeChild(area);
+    }
+
+    if (button) {
+      const original = button.textContent;
+      button.textContent = "Copied";
+      button.classList.add("copied");
+      window.setTimeout(() => {
+        button.textContent = original || "Copy";
+        button.classList.remove("copied");
+      }, 1200);
+    }
+  } catch (_) {
+    if (button) {
+      const original = button.textContent;
+      button.textContent = "Copy failed";
+      window.setTimeout(() => {
+        button.textContent = original || "Copy";
+      }, 1200);
+    }
+  }
+}
+
+document.addEventListener("click", (event) => {
+  const button = event.target.closest("[data-copy]");
+  if (!button) return;
+  event.preventDefault();
+  event.stopPropagation();
+  silaCopyText(button.getAttribute("data-copy"), button);
+});
+// SILA_COPY_HELPER_END
 // SILA_TX_DETAILS_PAGE_START
 function silaTxEscape(value) {
   return String(value === null || value === undefined ? "—" : value)
@@ -770,7 +833,7 @@ function silaTxLinkBlock(value) {
 
 function silaTxLinkAddress(value) {
   if (!value) return "Contract Creation";
-  return "<button type=\"button\" class=\"linklike\" data-address=\"" + silaTxEscape(value) + "\">" + silaTxEscape(value) + "</button>";
+  return "<button type=\"button\" class=\"linklike\" data-address=\"" + silaTxEscape(value) + "\">" + silaTxEscape(value) + "</button>" + silaCopyButton(value);
 }
 
 function silaTxDetailRow(label, value, raw) {
@@ -834,7 +897,7 @@ async function silaRenderTxDetails(hash) {
     + silaTxMiniCard("Nonce", silaTxHexToDec(tx.nonce || "0x0"))
     + "  </div>"
     + "  <div class=\"sila-detail-grid\">"
-    + silaTxDetailRow("Hash", silaTxEscape(tx.hash || hash), true)
+    + silaTxDetailRow("Hash", silaTxEscape(tx.hash || hash) + silaCopyButton(tx.hash || hash), true)
     + silaTxDetailRow("Status", "<span class=\"sila-status-pill " + statusClass + "\">" + silaTxEscape(statusLabel) + "</span>", false)
     + silaTxDetailRow("Block", blockNumber ? silaTxLinkBlock(blockNumber) : "Pending", false)
     + silaTxDetailRow("Transaction Index", silaTxHexToDec(tx.transactionIndex || (receipt ? receipt.transactionIndex : "0x0")), false)
@@ -848,7 +911,7 @@ async function silaRenderTxDetails(hash) {
     + silaTxDetailRow("Type", tx.type || "0x0", true)
     + silaTxDetailRow("Chain ID", tx.chainId ? silaTxHexToDec(tx.chainId) : "—", false)
     + silaTxDetailRow("Input Size", String(inputSize) + " bytes", false)
-    + silaTxDetailRow("Input", silaTxEscape(input), true)
+    + silaTxDetailRow("Input", silaTxEscape(input) + silaCopyButton(input), true)
     + "  </div>"
     + "</section>"
     + "<section class=\"panel sila-detail-card\">"
