@@ -1295,3 +1295,51 @@ html[dir="rtl"] .sila-copy-btn {
   }
 }
 /* SILA_VALIDATOR_READINESS_END */
+
+
+/* SILA_RUNTIME_PAGE_STYLE_START */
+.sila-runtime-card {
+  margin-top: 20px;
+}
+
+.sila-runtime-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  gap: 14px;
+}
+
+.sila-runtime-metric {
+  border: 1px solid rgba(148, 163, 184, 0.25);
+  border-radius: 18px;
+  padding: 16px;
+  background: rgba(15, 23, 42, 0.35);
+}
+
+.sila-runtime-metric span,
+.sila-runtime-metric small {
+  display: block;
+  color: var(--muted);
+}
+
+.sila-runtime-metric strong {
+  display: block;
+  margin: 8px 0;
+  font-size: 1.2rem;
+}
+
+.sila-runtime-ok {
+  color: #34d399;
+  font-weight: 700;
+}
+
+.sila-runtime-warn {
+  color: #fbbf24;
+  font-weight: 700;
+}
+
+.sila-runtime-actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+/* SILA_RUNTIME_PAGE_STYLE_END */

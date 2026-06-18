@@ -1496,7 +1496,7 @@ async function silaRenderHomeDashboard() {
     + "    <h2>Sila Network Overview</h2>"
     + "    <p>Live execution and consensus data from your local Sila devnet.</p>"
     + "  </div>"
-    + "  <button type=\"button\" onclick=\"window.silaRenderHomeDashboard()\">Refresh</button>"
+    + "  <div class=\"sila-runtime-actions\"><button type=\"button\" onclick=\"window.silaRenderHomeDashboard()\">Refresh</button><button type=\"button\" data-page=\"runtime\">Sila Runtime</button></div>"
     + "</div>"
     + "<div class=\"sila-empty-state\"><div><strong>Loading Sila network overview...</strong><span>Reading live Sila RPC data.</span></div></div>";
 
@@ -1524,7 +1524,7 @@ async function silaRenderHomeDashboard() {
     + "    <h2>Sila Network Overview</h2>"
     + "    <p>Live execution and consensus data from your local Sila devnet.</p>"
     + "  </div>"
-    + "  <button type=\"button\" onclick=\"window.silaRenderHomeDashboard()\">Refresh</button>"
+    + "  <div class=\"sila-runtime-actions\"><button type=\"button\" onclick=\"window.silaRenderHomeDashboard()\">Refresh</button><button type=\"button\" data-page=\"runtime\">Sila Runtime</button></div>"
     + "</div>"
     + "<div class=\"sila-home-metrics-grid\">"
     + silaHomeDashboardMetric("Latest Block", "#" + latestNumber, latestHash ? "Hash " + silaHomeDashboardEscape(silaHomeDashboardShort(latestHash)) : "Latest execution block", "latest-block")
@@ -2120,3 +2120,210 @@ window.silaRenderConsensusPage = silaRenderConsensusPageEnhanced;
   }, true);
 })();
 // SILA_BLOCKS_RENDER_RESTORE_END
+
+
+// SILA_RUNTIME_PAGE_START
+function silaRuntimeEscape(value) {
+  return String(value === null || value === undefined ? "—" : value)
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll("\"", "&quot;");
+}
+
+function silaRuntimeShort(value) {
+  if (!value || typeof value !== "string") return "—";
+  return value.length <= 18 ? value : value.slice(0, 10) + "..." + value.slice(-8);
+}
+
+function silaRuntimeStatus(ok, yes, no) {
+  return ok
+    ? "<span class=\"sila-runtime-ok\">" + silaRuntimeEscape(yes || "Online") + "</span>"
+    : "<span class=\"sila-runtime-warn\">" + silaRuntimeEscape(no || "Needs check") + "</span>";
+}
+
+function silaRuntimeEnsureView() {
+  let view = document.getElementById("featureView");
+  if (view) return view;
+
+  view = document.createElement("section");
+  view.id = "featureView";
+  view.className = "view";
+  document.querySelector("main").appendChild(view);
+  return view;
+}
+
+function silaRuntimeShowView() {
+  document.querySelectorAll(".view").forEach((node) => node.classList.remove("active-view"));
+  const view = silaRuntimeEnsureView();
+  view.classList.add("active-view");
+  return view;
+}
+
+function silaRuntimeMetric(label, value, note, ok) {
+  return ""
+    + "<article class=\"sila-runtime-metric\">"
+    + "  <span>" + silaRuntimeEscape(label) + "</span>"
+    + "  <strong>" + silaRuntimeEscape(value) + "</strong>"
+    + "  <small>" + (typeof ok === "boolean" ? silaRuntimeStatus(ok, note, note) : silaRuntimeEscape(note || "—")) + "</small>"
+    + "</article>";
+}
+
+function silaRuntimeRow(label, value, mono) {
+  return ""
+    + "<div class=\"sila-detail-label\">" + silaRuntimeEscape(label) + "</div>"
+    + "<div class=\"sila-detail-value" + (mono ? " mono" : "") + "\">" + silaRuntimeEscape(value) + "</div>";
+}
+
+function silaRuntimePorts(ports) {
+  const required = ports && ports.required ? ports.required : {};
+  return ""
+    + silaRuntimeMetric("EL RPC 8545", required.elRpc8545 ? "Listening" : "Closed", "http://127.0.0.1:8545", !!required.elRpc8545)
+    + silaRuntimeMetric("EL Auth 8551", required.elAuth8551 ? "Listening" : "Closed", "silaEngine endpoint", !!required.elAuth8551)
+    + silaRuntimeMetric("CL REST 3500", required.clRest3500 ? "Listening" : "Closed", "Sila-Prysm REST", !!required.clRest3500)
+    + silaRuntimeMetric("CL gRPC 4000", required.clGrpc4000 ? "Listening" : "Closed", "Validator provider", !!required.clGrpc4000)
+    + silaRuntimeMetric("SilaScan 8787", required.dashboard8787 ? "Listening" : "Closed", "Dashboard", !!required.dashboard8787);
+}
+
+function silaRuntimeProcessRows(processes) {
+  const items = processes && Array.isArray(processes.items) ? processes.items : [];
+  if (!items.length) {
+    return "<div class=\"sila-empty-state\"><div><strong>No local process data available.</strong><span>The API will still show RPC and REST status.</span></div></div>";
+  }
+
+  return ""
+    + "<table class=\"sila-blocks-table\">"
+    + "  <thead><tr><th>Process</th><th>PID</th><th>Path</th></tr></thead>"
+    + "  <tbody>"
+    + items.map((item) => ""
+    + "    <tr>"
+    + "      <td>" + silaRuntimeEscape(item.Name) + "</td>"
+    + "      <td>" + silaRuntimeEscape(item.ProcessId) + "</td>"
+    + "      <td class=\"mono\">" + silaRuntimeEscape(item.ExecutablePath || "—") + "</td>"
+    + "    </tr>").join("")
+    + "  </tbody>"
+    + "</table>";
+}
+
+async function silaRenderRuntimePage() {
+  const view = silaRuntimeShowView();
+
+  view.innerHTML = ""
+    + "<section class=\"sila-detail-hero\">"
+    + "  <div>"
+    + "    <small>Sila Runtime</small>"
+    + "    <h1>Sila Network Status</h1>"
+    + "    <p class=\"muted\">Loading live Sila runtime status from local EL, CL, validator, ports, and processes.</p>"
+    + "  </div>"
+    + "</section>";
+
+  let data;
+  try {
+    data = await fetch("/api/sila/runtime", { cache: "no-store" }).then((res) => res.json());
+  } catch (error) {
+    view.innerHTML = "<section class=\"panel\"><h2>Sila Runtime</h2><p class=\"muted\">Runtime API error: " + silaRuntimeEscape(error.message) + "</p></section>";
+    return;
+  }
+
+  const execution = data.execution || {};
+  const consensus = data.consensus || {};
+  const validator = data.validator || {};
+  const local = data.local || {};
+  const latest = execution.latestBlock || {};
+  const recentBlocks = Array.isArray(execution.recentBlocks) ? execution.recentBlocks : [];
+
+  view.innerHTML = ""
+    + "<section class=\"sila-detail-hero\">"
+    + "  <div>"
+    + "    <small>Sila Runtime</small>"
+    + "    <h1>Sila Network Status</h1>"
+    + "    <p class=\"muted\">Live runtime state from SilaChain, Sila-Prysm, validator, and SilaScan.</p>"
+    + "  </div>"
+    + "  <div class=\"sila-detail-actions\">"
+    + "    <button type=\"button\" onclick=\"window.silaRenderRuntimePage()\">Refresh</button>"
+    + "    <button type=\"button\" data-page=\"blocks\">View Blocks</button>"
+    + "  </div>"
+    + "</section>"
+    + "<section class=\"panel sila-runtime-card\">"
+    + "  <h2>Runtime Overview</h2>"
+    + "  <div class=\"sila-runtime-grid\">"
+    + silaRuntimeMetric("Execution Layer", execution.ok ? "Online" : "Offline", "SilaChain RPC", !!execution.ok)
+    + silaRuntimeMetric("Consensus REST", consensus.ok ? "Online" : "Offline", "Sila-Prysm REST", !!consensus.ok)
+    + silaRuntimeMetric("Validator", validator.ok ? "Running" : "Not detected", "Local validator process", !!validator.ok)
+    + silaRuntimeMetric("Latest Block", execution.latestBlockNumber !== null && execution.latestBlockNumber !== undefined ? "#" + execution.latestBlockNumber : "—", execution.productionMoving ? "Producing blocks" : "Check production", !!execution.productionMoving)
+    + silaRuntimeMetric("Head Slot", consensus.headSlot || "—", "Sync distance " + silaRuntimeEscape(consensus.syncDistance), consensus.isSyncing === false)
+    + silaRuntimeMetric("CL reports EL offline", consensus.elOffline === true ? "Yes" : "No", "Reported by CL REST", consensus.elOffline !== true)
+    + "  </div>"
+    + "</section>"
+    + "<section class=\"panel sila-runtime-card\">"
+    + "  <h2>Execution</h2>"
+    + "  <div class=\"sila-detail-grid\">"
+    + silaRuntimeRow("Chain ID", execution.chainId || "—", false)
+    + silaRuntimeRow("Latest Block", execution.latestBlockNumber !== null && execution.latestBlockNumber !== undefined ? "#" + execution.latestBlockNumber : "—", false)
+    + silaRuntimeRow("Latest Hash", latest.hash || "—", true)
+    + silaRuntimeRow("Latest Age", execution.latestAgeSeconds !== null && execution.latestAgeSeconds !== undefined ? execution.latestAgeSeconds + " seconds" : "—", false)
+    + silaRuntimeRow("Fee Recipient", latest.miner || "—", true)
+    + "  </div>"
+    + "</section>"
+    + "<section class=\"panel sila-runtime-card\">"
+    + "  <h2>Consensus</h2>"
+    + "  <div class=\"sila-detail-grid\">"
+    + silaRuntimeRow("Health Status", consensus.healthStatus || "—", false)
+    + silaRuntimeRow("Version", consensus.version || "—", false)
+    + silaRuntimeRow("Head Slot", consensus.headSlot || "—", false)
+    + silaRuntimeRow("Sync Distance", consensus.syncDistance || "—", false)
+    + silaRuntimeRow("Is Syncing", consensus.isSyncing === true ? "Yes" : "No", false)
+    + silaRuntimeRow("Is Optimistic", consensus.isOptimistic === true ? "Yes" : "No", false)
+    + silaRuntimeRow("Execution Optimistic", consensus.executionOptimistic === true ? "Yes" : "No", false)
+    + silaRuntimeRow("EL Offline Flag", consensus.elOffline === true ? "Yes" : "No", false)
+    + silaRuntimeRow("Head Root", consensus.headRoot || "—", true)
+    + "  </div>"
+    + "</section>"
+    + "<section class=\"panel sila-runtime-card\">"
+    + "  <h2>Ports</h2>"
+    + "  <div class=\"sila-runtime-grid\">"
+    + silaRuntimePorts(local.ports || {})
+    + "  </div>"
+    + "</section>"
+    + "<section class=\"panel sila-runtime-card\">"
+    + "  <h2>Local Processes</h2>"
+    + silaRuntimeProcessRows(local.processes || {})
+    + "</section>"
+    + "<section class=\"panel sila-runtime-card\">"
+    + "  <h2>Last Blocks</h2>"
+    + (recentBlocks.length ? "<div class=\"sila-blocks-table-wrap\"><table class=\"sila-blocks-table\"><thead><tr><th>Block</th><th>Hash</th><th>Txs</th><th>Gas Used</th></tr></thead><tbody>"
+      + recentBlocks.slice(0, 10).map((block) => "<tr><td><button type=\"button\" class=\"linklike\" data-sila-block-detail=\"" + silaRuntimeEscape(block.number) + "\">#" + silaRuntimeEscape(block.number) + "</button></td><td class=\"mono\">" + silaRuntimeEscape(silaRuntimeShort(block.hash)) + "</td><td>" + silaRuntimeEscape(block.transactionCount || 0) + "</td><td>" + silaRuntimeEscape(block.gasUsed || "0") + "</td></tr>").join("")
+      + "</tbody></table></div>" : "<div class=\"sila-empty-state\"><div><strong>No recent Sila blocks available.</strong><span>Runtime API is connected but no block list was returned.</span></div></div>")
+    + "</section>"
+    + "<section class=\"panel sila-runtime-card\">"
+    + "  <h2>Developer JSON</h2>"
+    + "  <pre>" + silaRuntimeEscape(JSON.stringify(data, null, 2)) + "</pre>"
+    + "</section>";
+}
+
+document.addEventListener("click", (event) => {
+  if (!event.target || typeof event.target.closest !== "function") return;
+
+  const item = event.target.closest("a, button, [data-page], [role=\"button\"], li");
+  if (!item) return;
+
+  const page = item.getAttribute("data-page");
+  const text = String(item.textContent || "").trim().toLowerCase();
+
+  const wantsRuntime = page === "runtime"
+    || page === "status"
+    || text === "network status"
+    || text === "sila network status"
+    || text === "sila runtime"
+    || text.includes("network status")
+    || text.includes("sila runtime");
+
+  if (!wantsRuntime) return;
+
+  event.preventDefault();
+  event.stopImmediatePropagation();
+  silaRenderRuntimePage();
+}, true);
+
+window.silaRenderRuntimePage = silaRenderRuntimePage;
+// SILA_RUNTIME_PAGE_END

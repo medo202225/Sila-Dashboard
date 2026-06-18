@@ -341,6 +341,197 @@ function serveStatic(req, res) {
 }
 
 
+
+ // SILA_RUNTIME_API_START
+function silaRuntimeArray(value) {
+  if (!value) return [];
+  return Array.isArray(value) ? value : [value];
+}
+
+function silaRuntimeProcessOk(processes, name) {
+  return silaRuntimeArray(processes).some((item) =>
+    item && typeof item.Name === "string" && item.Name.toLowerCase() === name.toLowerCase()
+  );
+}
+
+async function silaRuntimePowerShell(script) {
+  return await new Promise((resolve) => {
+    let childProcess;
+    try {
+      childProcess = require("child_process");
+    } catch (error) {
+      resolve({ ok: false, error: error.message, value: null });
+      return;
+    }
+
+    childProcess.execFile(
+      "powershell.exe",
+      ["-NoProfile", "-ExecutionPolicy", "Bypass", "-Command", script],
+      { windowsHide: true, timeout: 4000, maxBuffer: 1024 * 1024 },
+      (error, stdout, stderr) => {
+        if (error) {
+          resolve({
+            ok: false,
+            error: error.message,
+            stderr: String(stderr || "").trim(),
+            value: null
+          });
+          return;
+        }
+
+        const text = String(stdout || "").trim();
+        if (!text) {
+          resolve({ ok: true, error: null, value: [] });
+          return;
+        }
+
+        try {
+          resolve({ ok: true, error: null, value: JSON.parse(text) });
+        } catch (parseError) {
+          resolve({
+            ok: false,
+            error: parseError.message,
+            stdout: text,
+            value: null
+          });
+        }
+      }
+    );
+  });
+}
+
+async function silaRuntimeLocal() {
+  const processScript = `
+$items = Get-CimInstance Win32_Process |
+  Where-Object { $_.Name -in @('sila.exe','beacon-chain.exe','validator.exe','node.exe') } |
+  Select-Object Name,ProcessId,CreationDate,ExecutablePath,CommandLine
+@($items) | ConvertTo-Json -Depth 8
+`;
+
+  const portScript = `
+$items = Get-NetTCPConnection -State Listen -ErrorAction SilentlyContinue |
+  Where-Object { $_.LocalPort -in 8545,8551,3500,4000,8787 } |
+  Select-Object LocalAddress,LocalPort,OwningProcess |
+  Sort-Object LocalPort
+@($items) | ConvertTo-Json -Depth 8
+`;
+
+  const [processes, ports] = await Promise.all([
+    silaRuntimePowerShell(processScript),
+    silaRuntimePowerShell(portScript)
+  ]);
+
+  const processList = processes.ok ? silaRuntimeArray(processes.value) : [];
+  const portList = ports.ok ? silaRuntimeArray(ports.value) : [];
+
+  return {
+    ok: processes.ok || ports.ok,
+    processes: {
+      ok: processes.ok,
+      error: processes.error || null,
+      items: processList,
+      sila: silaRuntimeProcessOk(processList, "sila.exe"),
+      beacon: silaRuntimeProcessOk(processList, "beacon-chain.exe"),
+      validator: silaRuntimeProcessOk(processList, "validator.exe"),
+      dashboard: silaRuntimeProcessOk(processList, "node.exe")
+    },
+    ports: {
+      ok: ports.ok,
+      error: ports.error || null,
+      items: portList,
+      required: {
+        elRpc8545: portList.some((item) => Number(item.LocalPort) === 8545),
+        elAuth8551: portList.some((item) => Number(item.LocalPort) === 8551),
+        clRest3500: portList.some((item) => Number(item.LocalPort) === 3500),
+        clGrpc4000: portList.some((item) => Number(item.LocalPort) === 4000),
+        dashboard8787: portList.some((item) => Number(item.LocalPort) === 8787)
+      }
+    }
+  };
+}
+
+async function runtimePage() {
+  const [
+    chainId,
+    blockNumber,
+    latestBlockRaw,
+    syncing,
+    health,
+    version,
+    head,
+    local
+  ] = await Promise.all([
+    rpc("sila_chainId"),
+    rpc("sila_blockNumber"),
+    rpc("sila_getBlockByNumber", ["latest", false]),
+    restJson("/sila/v1/node/syncing"),
+    restStatus("/sila/v1/node/health"),
+    restJson("/sila/v1/node/version"),
+    restJson("/sila/v1/beacon/headers/head"),
+    silaRuntimeLocal()
+  ]);
+
+  const latestBlock = latestBlockRaw.ok ? blockView(latestBlockRaw.value) : null;
+  const recentBlocks = blockNumber.ok ? await getRecentBlocks(blockNumber.value, false) : [];
+  const sync = syncing.ok && syncing.value && syncing.value.data ? syncing.value.data : null;
+  const headData = head.ok && head.value && head.value.data ? head.value.data : null;
+
+  const latestTimestamp = latestBlock && latestBlock.timestamp ? Number(latestBlock.timestamp) : 0;
+  const latestAgeSeconds = latestTimestamp > 0 ? Math.max(0, Math.floor(Date.now() / 1000) - latestTimestamp) : null;
+  const productionMoving = latestAgeSeconds !== null && latestAgeSeconds <= 45;
+
+  const executionOk = chainId.ok && blockNumber.ok && latestBlockRaw.ok;
+  const consensusRestOk = health.ok && syncing.ok && head.ok;
+  const validatorProcessOk = !!(local.processes && local.processes.validator);
+
+  return {
+    ok: executionOk && consensusRestOk,
+    generatedAt: new Date().toISOString(),
+    chain: "Sila",
+    title: "Sila Network Status",
+    endpoints: {
+      executionRpc: "http://127.0.0.1:8545",
+      consensusRest: "http://127.0.0.1:3500",
+      consensusGrpc: "127.0.0.1:4000",
+      dashboard: "http://127.0.0.1:8787"
+    },
+    execution: {
+      ok: executionOk,
+      chainId: chainId.ok ? hexToDec(chainId.value) : null,
+      latestBlockNumber: blockNumber.ok ? hexToDec(blockNumber.value) : null,
+      latestBlock,
+      latestAgeSeconds,
+      productionMoving,
+      recentBlocks,
+      checks: { chainId, blockNumber, latestBlock: latestBlockRaw }
+    },
+    consensus: {
+      ok: consensusRestOk,
+      healthStatus: health.status || null,
+      version: version.ok && version.value && version.value.data ? version.value.data.version : null,
+      headSlot: sync ? sync.head_slot : null,
+      syncDistance: sync ? sync.sync_distance : null,
+      isSyncing: sync ? sync.is_syncing === true : null,
+      isOptimistic: sync ? sync.is_optimistic === true : null,
+      elOffline: sync ? sync.el_offline === true : null,
+      headRoot: headData ? headData.root : null,
+      finalized: headData ? headData.finalized === true : null,
+      executionOptimistic: head.value ? head.value.execution_optimistic === true : null,
+      checks: { health, version, syncing, head }
+    },
+    validator: {
+      ok: validatorProcessOk,
+      source: "local process inspection",
+      processDetected: validatorProcessOk,
+      note: validatorProcessOk
+        ? "validator.exe process is running locally."
+        : "validator.exe process was not detected locally."
+    },
+    local
+  };
+}
+// SILA_RUNTIME_API_END
+
 // SILA_BLOCKS_PAGE_START
 async function blocksPage(query) {
   const limitRaw = Number(query.searchParams.get("limit") || 25);
@@ -397,6 +588,7 @@ async function blocksPage(query) {
 const server = http.createServer(async (req, res) => {
   const url = new URL(req.url, "http://" + req.headers.host);
   try {
+    if (url.pathname === "/api/sila/runtime") return sendJson(res, 200, await runtimePage());
     if (url.pathname === "/api/sila/consensus") return sendJson(res, 200, await consensusPage());
     // SILA_FAVICON_ROUTE_START
     if (url.pathname === "/favicon.ico") {
