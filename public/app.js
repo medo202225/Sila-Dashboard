@@ -994,7 +994,9 @@ async function silaRenderAddressDetails(address) {
     + silaAddressRow("Contract Code Size", codeSize + " bytes", false, false)
     + silaAddressRow("Code", code && codeSize > 0 ? code : "0x", true, code && codeSize > 0)
     + "  </div>"
-    + "  <p class=\"sila-address-note\">Transactions list requires a Sila indexer. This page uses live Sila RPC state only.</p>"
+        + "  <p class=\"sila-address-note\">Recent Sila transactions scanned from live execution-layer blocks.</p>"
+    + "  <h2>Recent Transactions</h2>"
+    + silaAddressTxRows(data.recentTransactions || [])
     + "</section>"
     + "<section class=\"panel sila-detail-card\">"
     + "  <h2>Raw Sila Address JSON</h2>"
@@ -1017,6 +1019,26 @@ document.addEventListener("click", (event) => {
 window.silaRenderAddressDetails = silaRenderAddressDetails;
 // SILA_ADDRESS_DETAILS_PAGE_END
 
+
+// SILA_ADDRESS_TXS_RENDER_START
+function silaAddressTxRows(transactions) {
+  if (!Array.isArray(transactions) || transactions.length === 0) {
+    return "<div class=\"sila-empty-state\"><div><strong>No recent Sila transactions for this address.</strong><span>The live scan did not find matching transactions in the recent block window.</span></div></div>";
+  }
+
+  return "<div class=\"sila-blocks-table-wrap\"><table class=\"sila-blocks-table\">"
+    + "<thead><tr><th>Hash</th><th>Block</th><th>From</th><th>To</th><th>Value</th></tr></thead><tbody>"
+    + transactions.map((tx) => ""
+      + "<tr>"
+      + "  <td><button type=\"button\" class=\"linklike\" data-tx=\"" + silaAddressEscape(tx.hash || "") + "\">" + silaAddressEscape(tx.hashShort || tx.hash || "") + "</button></td>"
+      + "  <td><button type=\"button\" class=\"linklike\" data-sila-block-detail=\"" + silaAddressEscape(tx.blockNumber || "") + "\">#" + silaAddressEscape(tx.blockNumber || "") + "</button></td>"
+      + "  <td><button type=\"button\" class=\"linklike\" data-address=\"" + silaAddressEscape(tx.from || "") + "\">" + silaAddressEscape(tx.fromShort || tx.from || "") + "</button></td>"
+      + "  <td>" + (tx.to ? "<button type=\"button\" class=\"linklike\" data-address=\"" + silaAddressEscape(tx.to) + "\">" + silaAddressEscape(tx.toShort || tx.to) + "</button>" : "Contract Creation") + "</td>"
+      + "  <td>" + silaAddressEscape(tx.valueWei || "0x0") + " wei</td>"
+      + "</tr>").join("")
+    + "</tbody></table></div>";
+}
+// SILA_ADDRESS_TXS_RENDER_END
 // SILA_SEARCH_ROUTER_START
 function silaSearchNormalize(value) {
   return String(value || "").trim();

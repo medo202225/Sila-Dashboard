@@ -307,22 +307,26 @@ async function getTx(hash) {
 }
 
 async function getAddress(address) {
-  const clean = decodeURIComponent(address);
-  const [balance, nonce, code] = await Promise.all([
+  const clean = normalizeHash(address);
+  if (!isAddress(clean)) return { ok: false, query: address, error: "Invalid Sila address" };
+
+  const [balance, nonce, txScan] = await Promise.all([
     rpc("sila_getBalance", [clean, "latest"]),
     rpc("sila_getTransactionCount", [clean, "latest"]),
-    rpc("sila_getCode", [clean, "latest"])
+    silaAddressTransactions(clean, 25, 500)
   ]);
+
   return {
-    ok: balance.ok || nonce.ok || code.ok,
-    query: clean,
-    balanceWeiHex: balance.value,
-    balanceWei: hexToDec(balance.value),
-    balanceSila: weiToSilaString(balance.value || "0x0"),
-    nonceHex: nonce.value,
-    nonce: hexToDec(nonce.value),
-    isContract: code.ok && code.value && code.value !== "0x",
-    checks: { balance, nonce, code }
+    ok: balance.ok || nonce.ok,
+    query: address,
+    address: clean,
+    balance,
+    balanceWei: balance.ok && balance.value ? hexToDec(balance.value).toString() : null,
+    nonce,
+    transactionCount: nonce.ok && nonce.value ? hexToDec(nonce.value).toString() : null,
+    recentTransactionCount: txScan.ok ? txScan.count : 0,
+    recentTransactions: txScan.ok ? txScan.transactions : [],
+    transactionScan: txScan
   };
 }
 
@@ -750,6 +754,38 @@ async function transactionsPage(query) {
   };
 }
 // SILA_TRANSACTIONS_PAGE_END
+function silaAddressNormalize(value) {
+  return String(value || "").toLowerCase();
+}
+
+async function silaAddressTransactions(address, limit = 25, blocks = 500) {
+  const scanUrl = new URL("http://127.0.0.1/api/sila/transactions?limit=100&blocks=" + String(blocks));
+  const scan = await transactionsPage(scanUrl);
+
+  if (!scan.ok || !Array.isArray(scan.transactions)) {
+    return {
+      ok: false,
+      scannedBlockCount: scan.scannedBlockCount || 0,
+      scannedBlocks: scan.scannedBlocks || [],
+      count: 0,
+      transactions: [],
+      error: scan.error || "Unable to scan Sila transactions"
+    };
+  }
+
+  const target = silaAddressNormalize(address);
+  const matches = scan.transactions
+    .filter((tx) => silaAddressNormalize(tx.from) === target || silaAddressNormalize(tx.to) === target)
+    .slice(0, Math.max(1, Math.min(Number(limit || 25), 100)));
+
+  return {
+    ok: true,
+    scannedBlockCount: scan.scannedBlockCount || 0,
+    scannedBlocks: scan.scannedBlocks || [],
+    count: matches.length,
+    transactions: matches
+  };
+}
 
 // SILA_CONSENSUS_PAGE_START
 async function consensusPage() {
