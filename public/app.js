@@ -635,6 +635,7 @@ async function silaRenderBlockDetails(blockId) {
     + silaDetailRow("Status", "Finalized / canonical data depends on consensus finality endpoint", false, false)
     + silaDetailRow("Timestamp", block.timestamp ? block.timestamp + " (" + silaDetailAge(block.timestamp) + ")" : "—", false, false)
     + silaDetailRow("Transactions", block.transactionCount || 0, false, false)
+    + silaBlockTxRows(block)
     + silaDetailRow("Fee Recipient", block.miner || "—", true, true)
     + silaDetailRow("Block Reward", block.reward || "0 SILA", false, false)
     + silaDetailRow("Gas Used", block.gasUsed || "0", false, false)
@@ -687,6 +688,44 @@ document.addEventListener("click", (event) => {
 window.silaRenderBlockDetails = silaRenderBlockDetails;
 // SILA_BLOCK_DETAILS_PAGE_END
 
+
+// SILA_BLOCK_TXS_RENDER_START
+function silaBlockTxEscape(value) {
+  return String(value === undefined || value === null ? "" : value)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
+}
+
+function silaBlockTxShort(value) {
+  const text = String(value || "");
+  return text.length > 18 ? text.slice(0, 10) + "..." + text.slice(-8) : text;
+}
+
+function silaBlockTxRows(block) {
+  const txs = block && Array.isArray(block.transactions) ? block.transactions : [];
+
+  if (!txs.length) {
+    return "<section class=\"panel sila-detail-card\"><h2>Block Transactions</h2><div class=\"sila-empty-state\"><div><strong>No transactions in this Sila block.</strong><span>This block was produced without execution transactions.</span></div></div></section>";
+  }
+
+  return "<section class=\"panel sila-detail-card\">"
+    + "  <h2>Block Transactions</h2>"
+    + "  <div class=\"sila-blocks-table-wrap\"><table class=\"sila-blocks-table\">"
+    + "    <thead><tr><th>Hash</th><th>From</th><th>To</th><th>Value</th><th>Gas</th></tr></thead><tbody>"
+    + txs.map((tx) => ""
+      + "<tr>"
+      + "  <td><button type=\"button\" class=\"linklike\" data-tx=\"" + silaBlockTxEscape(tx.hash || "") + "\">" + silaBlockTxEscape(silaBlockTxShort(tx.hash || "")) + "</button></td>"
+      + "  <td><button type=\"button\" class=\"linklike\" data-address=\"" + silaBlockTxEscape(tx.from || "") + "\">" + silaBlockTxEscape(silaBlockTxShort(tx.from || "")) + "</button></td>"
+      + "  <td>" + (tx.to ? "<button type=\"button\" class=\"linklike\" data-address=\"" + silaBlockTxEscape(tx.to) + "\">" + silaBlockTxEscape(silaBlockTxShort(tx.to)) + "</button>" : "Contract Creation") + "</td>"
+      + "  <td>" + silaBlockTxEscape(tx.value || "0x0") + " wei</td>"
+      + "  <td>" + silaBlockTxEscape(tx.gas || "0x0") + "</td>"
+      + "</tr>").join("")
+    + "    </tbody></table></div>"
+    + "</section>";
+}
+// SILA_BLOCK_TXS_RENDER_END
 // SILA_TX_DETAILS_PAGE_START
 function silaTxEscape(value) {
   return String(value === null || value === undefined ? "—" : value)
