@@ -1125,170 +1125,184 @@ function silaAddressTxRows(transactions) {
 }
 // SILA_ADDRESS_TXS_RENDER_END
 // SILA_SEARCH_ROUTER_START
+function silaSearchEscape(value) {
+  return String(value === null || value === undefined ? "" : value)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
+}
+
 function silaSearchNormalize(value) {
   return String(value || "").trim();
 }
 
-function silaSearchKind(query) {
-  const q = silaSearchNormalize(query);
-
-  if (/^[0-9]+$/.test(q)) return "block";
-  if (/^0x[0-9a-fA-F]{40}$/.test(q)) return "address";
-  if (/^0x[0-9a-fA-F]{64}$/.test(q)) return "hash";
-  if (/^0x[0-9a-fA-F]{1,16}$/.test(q)) return "block";
-
-  return "unknown";
+function silaSearchLower(value) {
+  return silaSearchNormalize(value).toLowerCase();
 }
 
-function silaSearchEnsureView() {
-  let view = document.getElementById("featureView");
-  if (view) return view;
-
-  view = document.createElement("section");
-  view.id = "featureView";
-  view.className = "view page";
-  document.querySelector("main").appendChild(view);
-  return view;
+function silaSearchIsHexHash(value) {
+  return /^0x[0-9a-fA-F]{64}$/.test(value);
 }
 
-function silaSearchShowMessage(title, message, query) {
-  document.querySelectorAll(".view").forEach((node) => node.classList.remove("active-view"));
-  const view = silaSearchEnsureView();
-  view.classList.add("active-view");
+function silaSearchIsAddress(value) {
+  return /^0x[0-9a-fA-F]{40}$/.test(value);
+}
+
+function silaSearchIsDecimalBlock(value) {
+  return /^(0|[1-9][0-9]*)$/.test(value);
+}
+
+function silaSearchIsHexBlock(value) {
+  return /^0x[0-9a-fA-F]{1,16}$/.test(value);
+}
+
+function silaSearchHexBlockToDecimal(value) {
+  try {
+    return BigInt(value).toString(10);
+  } catch (_) {
+    return value;
+  }
+}
+
+function silaSearchView() {
+  return document.getElementById("sila-view") || document.getElementById("featureView") || document.querySelector("main");
+}
+
+function silaSearchMessage(title, message, query) {
+  const view = silaSearchView();
+  if (!view) return;
+
   view.innerHTML = ""
-    + "<section class=\"sila-detail-hero\">"
-    + "  <div>"
-    + "    <small>Sila Search</small>"
-    + "    <h1>" + String(title).replaceAll("<", "&lt;").replaceAll(">", "&gt;") + "</h1>"
-    + "    <p class=\"muted\">" + String(message).replaceAll("<", "&lt;").replaceAll(">", "&gt;") + "</p>"
-    + "    <p class=\"muted mono\">" + String(query || "").replaceAll("<", "&lt;").replaceAll(">", "&gt;") + "</p>"
+    + "<section class=\"panel sila-detail-card\">"
+    + "  <div class=\"sila-page-head\">"
+    + "    <div>"
+    + "      <p class=\"eyebrow\">Sila Search</p>"
+    + "      <h1>" + silaSearchEscape(title) + "</h1>"
+    + "      <p class=\"muted\">" + silaSearchEscape(message) + "</p>"
+    + "    </div>"
+    + "  </div>"
+    + "  <div class=\"sila-detail-grid\">"
+    + "    <div class=\"sila-detail-row\"><span>Query</span><strong class=\"mono\">" + silaSearchEscape(query || "") + "</strong></div>"
+    + "    <div class=\"sila-detail-row\"><span>Supported</span><strong>Transaction hash, address, block number</strong></div>"
     + "  </div>"
     + "</section>";
 }
 
-async function silaSearchRouteHash(query) {
+async function silaSearchJson(path) {
   try {
-    const tx = await fetch("/api/sila/tx/" + encodeURIComponent(query), { cache: "no-store" }).then((res) => res.json());
-    if (tx && tx.ok && tx.transaction && tx.transaction.value) {
-      window.silaRenderTxDetails(query);
+    return await fetch(path, { cache: "no-store" }).then((res) => res.json());
+  } catch (error) {
+    return { ok: false, error: error.message };
+  }
+}
+
+async function silaSearchRoute(rawQuery) {
+  const query = silaSearchNormalize(rawQuery);
+  const lower = silaSearchLower(query);
+
+  if (!query) {
+    silaSearchMessage("Empty Search", "Enter a Sila transaction hash, address, or block number.", query);
+    return;
+  }
+
+  if (silaSearchIsAddress(lower)) {
+    if (typeof window.silaRenderAddressDetails === "function") {
+      await window.silaRenderAddressDetails(lower);
       return;
     }
-  } catch {
+    silaSearchMessage("Address Detected", "Address renderer is not available.", lower);
+    return;
   }
 
-  try {
-    const block = await fetch("/api/sila/block/" + encodeURIComponent(query), { cache: "no-store" }).then((res) => res.json());
-    if (block && block.ok && block.block) {
-      window.silaRenderBlockDetails(query);
+  if (silaSearchIsDecimalBlock(query)) {
+    const block = await silaSearchJson("/api/sila/block/" + encodeURIComponent(query));
+    if (block && block.ok && typeof window.silaRenderBlockDetails === "function") {
+      await window.silaRenderBlockDetails(query);
       return;
     }
-  } catch {
+    silaSearchMessage("Block Not Found", "No Sila block was found for this block number.", query);
+    return;
   }
 
-  window.silaRenderTxDetails(query);
-}
-
-async function silaRouteSearchQuery(query) {
-  const q = silaSearchNormalize(query);
-  const kind = silaSearchKind(q);
-
-  if (!q) return false;
-
-  if (kind === "block") {
-    if (typeof window.silaRenderBlockDetails === "function") window.silaRenderBlockDetails(q);
-    return true;
-  }
-
-  if (kind === "address") {
-    if (typeof window.silaRenderAddressDetails === "function") window.silaRenderAddressDetails(q);
-    return true;
-  }
-
-  if (kind === "hash") {
-    await silaSearchRouteHash(q);
-    return true;
-  }
-
-  silaSearchShowMessage("Unsupported Search", "Enter a Sila block number, transaction hash, block hash, or address.", q);
-  return true;
-}
-
-function silaFindSearchInput(scope) {
-  const roots = [];
-  if (scope) {
-    const form = scope.closest ? scope.closest("form") : null;
-    if (form) roots.push(form);
-    const section = scope.closest ? scope.closest("section, header, main, .hero, .panel, .search, .search-box, .searchbar") : null;
-    if (section) roots.push(section);
-  }
-  roots.push(document);
-
-  for (const root of roots) {
-    const inputs = Array.from(root.querySelectorAll("input"));
-    for (const input of inputs) {
-      const type = (input.getAttribute("type") || "text").toLowerCase();
-      if (type === "hidden" || type === "checkbox" || type === "radio" || type === "button" || type === "submit") continue;
-      if (input.offsetParent === null && root !== document) continue;
-      return input;
+  if (silaSearchIsHexBlock(lower) && !silaSearchIsHexHash(lower) && !silaSearchIsAddress(lower)) {
+    const decimalBlock = silaSearchHexBlockToDecimal(lower);
+    const block = await silaSearchJson("/api/sila/block/" + encodeURIComponent(decimalBlock));
+    if (block && block.ok && typeof window.silaRenderBlockDetails === "function") {
+      await window.silaRenderBlockDetails(decimalBlock);
+      return;
     }
+    silaSearchMessage("Block Not Found", "No Sila block was found for this hex block number.", query);
+    return;
   }
 
-  return null;
+  if (silaSearchIsHexHash(lower)) {
+    const tx = await silaSearchJson("/api/sila/tx/" + encodeURIComponent(lower));
+    if (tx && tx.ok && tx.transaction && tx.transaction.value && typeof window.silaRenderTxDetails === "function") {
+      await window.silaRenderTxDetails(lower);
+      return;
+    }
+
+    const block = await silaSearchJson("/api/sila/block/" + encodeURIComponent(lower));
+    if (block && block.ok && typeof window.silaRenderBlockDetails === "function") {
+      await window.silaRenderBlockDetails(lower);
+      return;
+    }
+
+    silaSearchMessage("Hash Not Found", "This 32-byte hash was not found as a Sila transaction or block in the current node data.", lower);
+    return;
+  }
+
+  silaSearchMessage("Unsupported Search", "Use a Sila transaction hash, address, decimal block number, or hex block number.", query);
 }
 
-document.addEventListener("submit", (event) => {
-  const form = event.target;
-  if (!form || typeof form.querySelector !== "function") return;
+function silaSearchFindInput(root) {
+  const scope = root || document;
+  return scope.querySelector(
+    "[data-sila-search-input], [data-search-input], #sila-search-input, #searchInput, input[type='search'], input[name='q'], input[placeholder*='Search'], input[placeholder*='search']"
+  );
+}
 
-  const input = silaFindSearchInput(form);
-  if (!input) return;
+function silaSearchBindRouter() {
+  document.addEventListener("submit", (event) => {
+    const form = event.target.closest("form");
+    if (!form) return;
 
-  const q = silaSearchNormalize(input.value);
-  if (silaSearchKind(q) === "unknown" && !q) return;
+    const input = silaSearchFindInput(form);
+    if (!input) return;
 
-  event.preventDefault();
-  event.stopImmediatePropagation();
-  silaRouteSearchQuery(q);
-}, true);
+    event.preventDefault();
+    silaSearchRoute(input.value);
+  }, true);
 
-document.addEventListener("click", (event) => {
-  if (!event.target || typeof event.target.closest !== "function") return;
+  document.addEventListener("keydown", (event) => {
+    if (event.key !== "Enter") return;
 
-  const button = event.target.closest("button, [role=\"button\"], input[type=\"submit\"]");
-  if (!button) return;
+    const input = event.target.closest(
+      "[data-sila-search-input], [data-search-input], #sila-search-input, #searchInput, input[type='search'], input[name='q'], input[placeholder*='Search'], input[placeholder*='search']"
+    );
 
-  const label = (button.getAttribute("aria-label") || button.value || button.textContent || "").trim().toLowerCase();
-  const looksLikeSearch = label.includes("search") || label.includes("بحث") || button.hasAttribute("data-search");
-  if (!looksLikeSearch) return;
+    if (!input) return;
 
-  const input = silaFindSearchInput(button);
-  if (!input) return;
+    event.preventDefault();
+    silaSearchRoute(input.value);
+  }, true);
 
-  const q = silaSearchNormalize(input.value);
-  if (!q) return;
+  document.addEventListener("click", (event) => {
+    const button = event.target.closest("[data-sila-search-submit], [data-search-submit]");
+    if (!button) return;
 
-  event.preventDefault();
-  event.stopImmediatePropagation();
-  silaRouteSearchQuery(q);
-}, true);
+    const container = button.closest("form") || button.closest("section") || document;
+    const input = silaSearchFindInput(container);
+    if (!input) return;
 
-document.addEventListener("keydown", (event) => {
-  const target = event.target;
-  if (!target || target.tagName !== "INPUT") return;
-  if (event.key !== "Enter") return;
+    event.preventDefault();
+    silaSearchRoute(input.value);
+  }, true);
+}
 
-  const q = silaSearchNormalize(target.value);
-  if (!q) return;
-
-  const kind = silaSearchKind(q);
-  if (kind === "unknown") return;
-
-  event.preventDefault();
-  event.stopImmediatePropagation();
-  silaRouteSearchQuery(q);
-}, true);
-
-window.silaRouteSearchQuery = silaRouteSearchQuery;
+silaSearchBindRouter();
+window.silaSearchRoute = silaSearchRoute;
 // SILA_SEARCH_ROUTER_END
 
 // SILA_TRANSACTIONS_PAGE_START
