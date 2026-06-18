@@ -1257,7 +1257,7 @@ async function silaRenderTransactionsPage() {
   let data;
 
   try {
-    data = await fetch("/api/sila/transactions?limit=25&blocks=80", { cache: "no-store" }).then((res) => res.json());
+    data = await fetch("/api/sila/transactions?limit=25&blocks=500", { cache: "no-store" }).then((res) => res.json());
   } catch (error) {
     view.innerHTML = "<section class=\"panel\"><h2>Sila Transactions</h2><p class=\"muted\">Transactions API error: " + silaTransactionsEscape(error.message) + "</p></section>";
     return;

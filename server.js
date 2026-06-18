@@ -616,45 +616,120 @@ server.listen(PORT, HOST, () => {
 
 
 // SILA_TRANSACTIONS_PAGE_START
+function silaTxDecToHex(value) {
+  return "0x" + BigInt(value).toString(16);
+}
+
+function silaTxHexToBigInt(value, fallback = 0n) {
+  try {
+    if (typeof value === "number") return BigInt(value);
+    if (typeof value === "bigint") return value;
+    if (typeof value === "string" && value.startsWith("0x")) return BigInt(value);
+    if (typeof value === "string" && value.length) return BigInt(value);
+  } catch (_) {
+    return fallback;
+  }
+  return fallback;
+}
+
+function silaTxHexToDecString(value) {
+  return silaTxHexToBigInt(value, 0n).toString(10);
+}
+
+function silaTxShort(value) {
+  if (!value || typeof value !== "string") return "";
+  return value.length > 18 ? value.slice(0, 10) + "..." + value.slice(-8) : value;
+}
+
+function silaNormalizeTx(block, tx) {
+  const blockNumberHex = tx.blockNumber || block.number || "0x0";
+  const txHash = tx.hash || "";
+
+  return {
+    hash: txHash,
+    hashShort: silaTxShort(txHash),
+    blockNumber: silaTxHexToDecString(blockNumberHex),
+    blockNumberHex,
+    blockHash: tx.blockHash || block.hash || "",
+    from: tx.from || "",
+    fromShort: silaTxShort(tx.from || ""),
+    to: tx.to || "",
+    toShort: tx.to ? silaTxShort(tx.to) : "",
+    valueWei: tx.value || "0x0",
+    gas: tx.gas || "0x0",
+    gasPrice: tx.gasPrice || tx.maxFeePerGas || "0x0",
+    nonce: tx.nonce || "0x0",
+    transactionIndex: tx.transactionIndex || "0x0",
+    type: tx.type || "0x0",
+    chainId: tx.chainId || null
+  };
+}
+
 async function transactionsPage(query) {
-  const latestHex = await rpc("sila_blockNumber", []);
-  const latest = hexToDec(latestHex.value);
   const limit = Math.max(1, Math.min(Number(query.searchParams.get("limit") || 25), 100));
-  const blockLimit = Math.max(1, Math.min(Number(query.searchParams.get("blocks") || 50), 200));
+  const blockLimit = Math.max(1, Math.min(Number(query.searchParams.get("blocks") || 250), 500));
+
+  const latestRaw = await rpc("sila_blockNumber", []);
+  if (!latestRaw.ok || !latestRaw.value) {
+    return {
+      ok: false,
+      chain: "Sila",
+      generatedAt: new Date().toISOString(),
+      error: latestRaw.error || "Unable to read latest Sila block number",
+      latestBlock: null,
+      scannedBlockCount: 0,
+      scannedBlocks: [],
+      requestedBlockLimit: blockLimit,
+      count: 0,
+      transactions: [],
+      errors: []
+    };
+  }
+
+  const latest = silaTxHexToBigInt(latestRaw.value, -1n);
+  if (latest < 0n) {
+    return {
+      ok: false,
+      chain: "Sila",
+      generatedAt: new Date().toISOString(),
+      error: "Invalid latest Sila block number",
+      latestBlock: null,
+      scannedBlockCount: 0,
+      scannedBlocks: [],
+      requestedBlockLimit: blockLimit,
+      count: 0,
+      transactions: [],
+      errors: []
+    };
+  }
 
   const transactions = [];
   const scannedBlocks = [];
+  const errors = [];
 
-  for (let i = 0; i < blockLimit; i++) {
-    const blockNumber = latest - BigInt(i);
+  for (let offset = 0n; offset < BigInt(blockLimit); offset++) {
+    const blockNumber = latest - offset;
     if (blockNumber < 0n) break;
 
-    const blockRaw = await rpc("sila_getBlockByNumber", [decToHex(blockNumber), true]);
-    if (!blockRaw.ok || !blockRaw.value) continue;
+    const blockRaw = await rpc("sila_getBlockByNumber", [silaTxDecToHex(blockNumber), true]);
 
-    const block = blockView(blockRaw.value);
-    scannedBlocks.push(block.number);
+    if (!blockRaw.ok || !blockRaw.value) {
+      if (errors.length < 8) {
+        errors.push({
+          blockNumber: blockNumber.toString(10),
+          error: blockRaw.error || "Unable to read block"
+        });
+      }
+      continue;
+    }
 
-    const txs = Array.isArray(blockRaw.value.transactions) ? blockRaw.value.transactions : [];
+    const block = blockRaw.value;
+    scannedBlocks.push(silaTxHexToDecString(block.number || silaTxDecToHex(blockNumber)));
+
+    const txs = Array.isArray(block.transactions) ? block.transactions : [];
     for (const tx of txs) {
       if (!tx || typeof tx !== "object") continue;
-      transactions.push({
-        hash: tx.hash || "",
-        hashShort: shortHash(tx.hash || ""),
-        blockNumber: block.number,
-        blockHash: block.hash,
-        from: tx.from || "",
-        fromShort: shortHash(tx.from || ""),
-        to: tx.to || "",
-        toShort: tx.to ? shortHash(tx.to) : "Contract Creation",
-        value: tx.value || "0x0",
-        valueWei: tx.value ? hexToDec(tx.value).toString() : "0",
-        gas: tx.gas ? hexToDec(tx.gas).toString() : "0",
-        gasPrice: tx.gasPrice ? hexToDec(tx.gasPrice).toString() : "0",
-        nonce: tx.nonce ? hexToDec(tx.nonce).toString() : "0",
-        input: tx.input || "0x"
-      });
-
+      transactions.push(silaNormalizeTx(block, tx));
       if (transactions.length >= limit) break;
     }
 
@@ -663,14 +738,15 @@ async function transactionsPage(query) {
 
   return {
     ok: true,
-    generatedAt: new Date().toISOString(),
     chain: "Sila",
-    latestBlock: latest.toString(),
+    generatedAt: new Date().toISOString(),
+    latestBlock: latest.toString(10),
     scannedBlockCount: scannedBlocks.length,
     scannedBlocks,
-    limit,
+    requestedBlockLimit: blockLimit,
     count: transactions.length,
-    transactions
+    transactions,
+    errors
   };
 }
 // SILA_TRANSACTIONS_PAGE_END
