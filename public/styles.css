@@ -1344,204 +1344,6 @@ html[dir="rtl"] .sila-copy-btn {
 }
 /* SILA_RUNTIME_PAGE_STYLE_END */
 
-/* SILA_VISUAL_POLISH_V1_START */
-:root {
-  --sila-glow: rgba(7, 132, 195, 0.22);
-  --sila-glow-strong: rgba(7, 132, 195, 0.38);
-  --sila-card-blur: blur(18px);
-}
-
-body {
-  background:
-    radial-gradient(circle at 15% 0%, rgba(7, 132, 195, 0.16), transparent 34%),
-    radial-gradient(circle at 85% 10%, rgba(47, 197, 162, 0.14), transparent 30%),
-    linear-gradient(180deg, var(--bg), var(--bg-soft, var(--bg)));
-}
-
-.minibar {
-  backdrop-filter: var(--sila-card-blur);
-  border-bottom: 1px solid rgba(148, 163, 184, 0.18);
-}
-
-.topbar {
-  position: sticky;
-  top: 0;
-  z-index: 40;
-  backdrop-filter: var(--sila-card-blur);
-  border-bottom: 1px solid rgba(148, 163, 184, 0.18);
-  box-shadow: 0 14px 38px rgba(15, 23, 42, 0.08);
-}
-
-.brand .logo,
-.logo {
-  box-shadow: 0 12px 34px var(--sila-glow-strong);
-  background:
-    radial-gradient(circle at 30% 25%, rgba(255,255,255,0.45), transparent 32%),
-    linear-gradient(135deg, var(--blue), #2fc5a2);
-}
-
-.nav-btn {
-  border-radius: 999px;
-  transition: transform .16s ease, background .16s ease, color .16s ease, box-shadow .16s ease;
-}
-
-.nav-btn:hover {
-  transform: translateY(-1px);
-  background: rgba(7, 132, 195, 0.09);
-  box-shadow: 0 8px 24px rgba(7, 132, 195, 0.12);
-}
-
-.nav-btn.active {
-  box-shadow: 0 10px 28px rgba(7, 132, 195, 0.16);
-}
-
-.icon-btn,
-.dropdown button,
-.page-search button,
-.mega-search button,
-.small-btn,
-.panel-footer-btn,
-.sila-blocks-actions button,
-.sila-detail-actions button,
-.sila-runtime-actions button {
-  transition: transform .16s ease, box-shadow .16s ease, background .16s ease, color .16s ease;
-}
-
-.icon-btn:hover,
-.dropdown button:hover,
-.page-search button:hover,
-.mega-search button:hover,
-.small-btn:hover,
-.panel-footer-btn:hover,
-.sila-blocks-actions button:hover,
-.sila-detail-actions button:hover,
-.sila-runtime-actions button:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 10px 24px rgba(7, 132, 195, 0.16);
-}
-
-.hero {
-  min-height: 360px;
-  border-bottom: 1px solid rgba(148, 163, 184, 0.18);
-  background:
-    radial-gradient(circle at 20% 20%, rgba(47, 197, 162, 0.22), transparent 28%),
-    radial-gradient(circle at 75% 25%, rgba(7, 132, 195, 0.28), transparent 34%),
-    linear-gradient(135deg, rgba(5, 20, 42, 0.96), rgba(9, 36, 76, 0.94));
-}
-
-.hero::after {
-  content: "";
-  position: absolute;
-  inset: auto 8% 0;
-  height: 1px;
-  background: linear-gradient(90deg, transparent, rgba(255,255,255,.5), transparent);
-}
-
-.hero-content h1 {
-  letter-spacing: -0.045em;
-  text-shadow: 0 16px 42px rgba(0,0,0,.25);
-}
-
-.mega-search,
-.page-search {
-  box-shadow: 0 18px 50px rgba(15, 23, 42, 0.16);
-  border: 1px solid rgba(148, 163, 184, 0.22);
-}
-
-.overview-card,
-.home-panel,
-.panel,
-.sila-detail-card,
-.sila-runtime-card,
-.sila-home-dashboard {
-  border: 1px solid rgba(148, 163, 184, 0.20);
-  box-shadow: 0 18px 48px rgba(15, 23, 42, 0.10);
-}
-
-.overview-card {
-  backdrop-filter: var(--sila-card-blur);
-}
-
-.overview-row,
-.feed-row,
-.stats article,
-.sila-runtime-metric,
-.sila-consensus-mini {
-  transition: transform .16s ease, border-color .16s ease, box-shadow .16s ease;
-}
-
-.overview-row:hover,
-.feed-row:hover,
-.stats article:hover,
-.sila-runtime-metric:hover,
-.sila-consensus-mini:hover {
-  transform: translateY(-2px);
-  border-color: rgba(7, 132, 195, 0.30);
-  box-shadow: 0 14px 32px rgba(7, 132, 195, 0.10);
-}
-
-.feed-icon,
-.overview-icon {
-  box-shadow: inset 0 0 0 1px rgba(255,255,255,.22), 0 10px 24px var(--sila-glow);
-}
-
-table {
-  border-collapse: separate;
-  border-spacing: 0;
-}
-
-tbody tr {
-  transition: background .14s ease, transform .14s ease;
-}
-
-tbody tr:hover {
-  background: rgba(7, 132, 195, 0.055);
-}
-
-.link,
-.linklike,
-.hash-link,
-.block-number {
-  text-decoration: none;
-}
-
-.link:hover,
-.linklike:hover,
-.hash-link:hover,
-.block-number:hover {
-  text-decoration: underline;
-}
-
-.dropdown {
-  border: 1px solid rgba(148, 163, 184, 0.22);
-  box-shadow: 0 20px 55px rgba(15, 23, 42, 0.18);
-  backdrop-filter: var(--sila-card-blur);
-}
-
-body.theme-dark .topbar,
-body.theme-dim .topbar,
-html[data-theme="dark"] .topbar,
-html[data-theme="dim"] .topbar {
-  box-shadow: 0 16px 42px rgba(0, 0, 0, 0.28);
-}
-
-@media (max-width: 760px) {
-  .topbar {
-    position: static;
-  }
-
-  .hero {
-    min-height: 300px;
-  }
-
-  .overview-card,
-  .home-grid,
-  .page,
-  footer {
-    width: calc(100% - 28px) !important;
-  }
-}
-/* SILA_VISUAL_POLISH_V1_END */
 
 /* SILA_FINAL_TRUE_CIRCLE_START */
 .topbar {
@@ -1654,3 +1456,354 @@ nav::-webkit-scrollbar {
   }
 }
 /* SILA_FINAL_TRUE_CIRCLE_END */
+
+/* SILA_FULL_BRAND_THEME_START */
+
+/* Official Sila palette from the logo:
+   deep green = agriculture/trust
+   leaf green = smart growth
+   warm gold = land/production
+   blue accent = explorer/technology
+*/
+:root {
+  --sila-bg-0: #020b07;
+  --sila-bg-1: #06150d;
+  --sila-bg-2: #092116;
+  --sila-panel: rgba(7, 28, 18, 0.88);
+  --sila-panel-soft: rgba(8, 38, 24, 0.72);
+  --sila-line: rgba(119, 176, 137, 0.22);
+  --sila-green-deep: #0c3b20;
+  --sila-green: #2f7d32;
+  --sila-green-light: #8cc63f;
+  --sila-gold: #d9a018;
+  --sila-gold-light: #f1c84b;
+  --sila-cyan: #22a6f2;
+  --sila-text: #f8fff9;
+  --sila-muted: #b8d4c2;
+  --sila-shadow: rgba(0, 0, 0, 0.34);
+}
+
+/* Base atmosphere */
+body {
+  background:
+    radial-gradient(circle at 13% 0%, rgba(140, 198, 63, 0.17), transparent 27%),
+    radial-gradient(circle at 82% 10%, rgba(217, 160, 24, 0.10), transparent 24%),
+    radial-gradient(circle at 62% 36%, rgba(34, 166, 242, 0.12), transparent 34%),
+    linear-gradient(180deg, var(--sila-bg-0) 0%, var(--sila-bg-1) 44%, #03110b 100%) !important;
+  color: var(--sila-text) !important;
+}
+
+/* Top ticker */
+.minibar {
+  background: rgba(1, 12, 7, 0.88) !important;
+  border-bottom: 1px solid rgba(140, 198, 63, 0.18) !important;
+  color: var(--sila-muted) !important;
+  backdrop-filter: blur(18px);
+}
+
+.minibar b,
+.minibar strong,
+.minibar a {
+  color: var(--sila-cyan) !important;
+}
+
+/* Header */
+.topbar {
+  background:
+    linear-gradient(90deg, rgba(1, 13, 7, 0.98), rgba(3, 22, 12, 0.96), rgba(1, 13, 7, 0.98)) !important;
+  border-bottom: 1px solid rgba(140, 198, 63, 0.20) !important;
+  box-shadow: 0 18px 42px rgba(0, 0, 0, 0.28) !important;
+}
+
+/* Logo circle should feel premium and connected to the palette */
+.sila-mark-circle {
+  background:
+    radial-gradient(circle at 30% 22%, rgba(255,255,255,0.10), transparent 34%),
+    linear-gradient(135deg, rgba(12,59,32,0.62), rgba(2,14,8,0.20)) !important;
+  border: 2px solid rgba(255, 255, 255, 0.76) !important;
+  box-shadow:
+    0 10px 25px rgba(0,0,0,0.30),
+    0 0 0 1px rgba(140, 198, 63, 0.30),
+    0 0 34px rgba(140, 198, 63, 0.12) !important;
+}
+
+.sila-official-mark {
+  filter: saturate(1.06) contrast(1.02);
+}
+
+.brand strong {
+  color: #ffffff !important;
+  text-shadow: 0 8px 22px rgba(0,0,0,0.35);
+}
+
+/* Navigation */
+.nav-btn {
+  color: #f4fff7 !important;
+  border-radius: 999px !important;
+  font-weight: 800 !important;
+  transition: transform .15s ease, background .15s ease, box-shadow .15s ease, color .15s ease !important;
+}
+
+.nav-btn:hover {
+  transform: translateY(-1px);
+  background: rgba(140, 198, 63, 0.10) !important;
+  box-shadow: 0 10px 24px rgba(140, 198, 63, 0.10) !important;
+}
+
+.nav-btn.active {
+  color: var(--sila-cyan) !important;
+  background: rgba(34, 166, 242, 0.10) !important;
+  box-shadow:
+    0 12px 28px rgba(34, 166, 242, 0.13),
+    inset 0 0 0 1px rgba(34, 166, 242, 0.10) !important;
+}
+
+/* Overview card: make it look like official live network panel */
+.overview-card,
+.sila-home-dashboard {
+  background:
+    linear-gradient(135deg, rgba(7, 28, 18, 0.92), rgba(3, 18, 11, 0.94)) !important;
+  border: 1px solid rgba(140, 198, 63, 0.20) !important;
+  box-shadow:
+    0 22px 64px rgba(0, 0, 0, 0.30),
+    inset 0 1px 0 rgba(255,255,255,0.03) !important;
+  backdrop-filter: blur(18px);
+}
+
+.overview-card h2,
+.sila-home-dashboard h2,
+.panel h2,
+.home-panel h2 {
+  color: #ffffff !important;
+  letter-spacing: -0.035em;
+}
+
+.overview-card p,
+.sila-home-dashboard p,
+.panel p,
+.home-panel p {
+  color: var(--sila-muted) !important;
+}
+
+/* Metric cards */
+.overview-row,
+.stats article,
+.sila-runtime-metric,
+.sila-consensus-mini,
+.sila-readiness-card {
+  background:
+    radial-gradient(circle at 14% 0%, rgba(140,198,63,0.10), transparent 38%),
+    linear-gradient(145deg, rgba(8, 42, 25, 0.78), rgba(4, 22, 13, 0.94)) !important;
+  border: 1px solid rgba(140, 198, 63, 0.22) !important;
+  box-shadow: 0 14px 32px rgba(0,0,0,0.18) !important;
+}
+
+.overview-row:hover,
+.stats article:hover,
+.sila-runtime-metric:hover,
+.sila-consensus-mini:hover,
+.sila-readiness-card:hover {
+  transform: translateY(-2px);
+  border-color: rgba(241, 200, 75, 0.34) !important;
+  box-shadow:
+    0 18px 42px rgba(0,0,0,0.26),
+    0 0 0 1px rgba(217,160,24,0.10) !important;
+}
+
+.overview-row small,
+.stats small,
+.sila-runtime-metric small,
+.sila-consensus-mini small {
+  color: #b9dac6 !important;
+  text-transform: uppercase;
+  letter-spacing: .065em;
+}
+
+.overview-row b,
+.stats b,
+.sila-runtime-metric b,
+.sila-consensus-mini b {
+  color: #ffffff !important;
+}
+
+/* Hero: agri-tech + explorer */
+.hero {
+  background:
+    linear-gradient(rgba(2, 11, 7, 0.10), rgba(2, 11, 7, 0.10)),
+    linear-gradient(90deg, rgba(2, 20, 11, 0.90), rgba(7, 46, 31, 0.72), rgba(9, 50, 92, 0.80)),
+    radial-gradient(circle at 18% 20%, rgba(140,198,63,0.19), transparent 28%),
+    radial-gradient(circle at 70% 15%, rgba(217,160,24,0.12), transparent 32%) !important;
+  border-bottom: 1px solid rgba(140, 198, 63, 0.18) !important;
+  position: relative;
+  overflow: hidden;
+}
+
+.hero::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(rgba(255,255,255,0.028) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,0.028) 1px, transparent 1px);
+  background-size: 76px 76px;
+  mask-image: linear-gradient(180deg, rgba(0,0,0,0.9), transparent 86%);
+  pointer-events: none;
+}
+
+.hero-content {
+  position: relative;
+  z-index: 1;
+}
+
+.hero h1,
+.hero-content h1 {
+  color: #ffffff !important;
+  letter-spacing: -0.055em !important;
+  text-shadow: 0 16px 44px rgba(0,0,0,0.38) !important;
+}
+
+/* Search bar */
+.mega-search,
+.page-search {
+  background: #ffffff !important;
+  border: 1px solid rgba(255,255,255,0.28) !important;
+  box-shadow:
+    0 24px 60px rgba(0,0,0,0.30),
+    0 0 0 1px rgba(34,166,242,0.08) !important;
+}
+
+.mega-search button,
+.page-search button {
+  background:
+    linear-gradient(135deg, var(--sila-cyan), #168ad1) !important;
+  color: #ffffff !important;
+  box-shadow: 0 12px 28px rgba(34,166,242,0.28) !important;
+}
+
+/* Panels and tables */
+.home-panel,
+.panel,
+.sila-detail-card,
+.sila-runtime-card {
+  background:
+    linear-gradient(145deg, rgba(6, 26, 16, 0.92), rgba(3, 15, 9, 0.96)) !important;
+  border: 1px solid rgba(140, 198, 63, 0.20) !important;
+  box-shadow: 0 18px 46px rgba(0,0,0,0.24) !important;
+}
+
+.feed-row,
+.table-row,
+tr {
+  border-color: rgba(140, 198, 63, 0.14) !important;
+}
+
+tbody tr:hover,
+.feed-row:hover {
+  background: rgba(140, 198, 63, 0.07) !important;
+}
+
+/* Icon styling: green/gold ecosystem */
+.feed-icon,
+.overview-icon,
+.stats-icon,
+.sila-runtime-icon {
+  background:
+    radial-gradient(circle at 35% 25%, rgba(241,200,75,0.20), transparent 34%),
+    linear-gradient(135deg, rgba(8, 54, 31, 0.92), rgba(2, 22, 13, 0.95)) !important;
+  border: 1px solid rgba(140, 198, 63, 0.28) !important;
+  color: var(--sila-gold-light) !important;
+  box-shadow:
+    inset 0 0 0 1px rgba(255,255,255,0.03),
+    0 12px 28px rgba(0,0,0,0.22) !important;
+}
+
+/* Buttons */
+button,
+.small-btn,
+.panel-footer-btn,
+.sila-blocks-actions button,
+.sila-detail-actions button,
+.sila-runtime-actions button {
+  border-color: rgba(140, 198, 63, 0.22) !important;
+}
+
+.small-btn,
+.panel-footer-btn {
+  background:
+    linear-gradient(135deg, rgba(8, 48, 28, 0.92), rgba(4, 24, 14, 0.94)) !important;
+  color: #ffffff !important;
+}
+
+.small-btn:hover,
+.panel-footer-btn:hover {
+  border-color: rgba(241, 200, 75, 0.38) !important;
+  box-shadow: 0 14px 30px rgba(217, 160, 24, 0.12) !important;
+}
+
+/* Links */
+a,
+.link,
+.linklike,
+.hash-link,
+.block-number {
+  color: #49c7ff !important;
+}
+
+a:hover,
+.link:hover,
+.linklike:hover,
+.hash-link:hover,
+.block-number:hover {
+  color: var(--sila-gold-light) !important;
+}
+
+/* Dropdowns/settings */
+.dropdown {
+  background:
+    linear-gradient(145deg, rgba(5, 23, 14, 0.98), rgba(2, 13, 8, 0.98)) !important;
+  border: 1px solid rgba(140, 198, 63, 0.24) !important;
+  box-shadow: 0 24px 60px rgba(0,0,0,0.34) !important;
+}
+
+.dropdown button {
+  color: #ffffff !important;
+}
+
+/* Main content spacing */
+.page,
+.home-grid,
+.grid,
+footer {
+  max-width: 1420px;
+}
+
+/* Scrollbar matching Sila */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: #03110b;
+}
+
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, #2f7d32, #d9a018);
+  border-radius: 999px;
+}
+
+/* Mobile polish */
+@media (max-width: 760px) {
+  .hero {
+    min-height: 310px !important;
+  }
+
+  .overview-card,
+  .home-grid,
+  .grid,
+  .page,
+  footer {
+    width: calc(100% - 28px) !important;
+  }
+}
+/* SILA_FULL_BRAND_THEME_END */
