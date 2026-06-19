@@ -2294,3 +2294,68 @@ body {
   }
 }
 /* SILA_HERO_HARD_COMPACT_END */
+
+/* SILA_CARD_GAP_FIX_START */
+
+/* فصل كروت الإحصائيات حتى لا تبدو متداخلة */
+.stats {
+  gap: 14px !important;
+  padding: 0 !important;
+  background: transparent !important;
+  border: 0 !important;
+  box-shadow: none !important;
+  overflow: visible !important;
+}
+
+.stats article {
+  border-radius: 18px !important;
+  border: 1px solid rgba(140, 198, 63, 0.26) !important;
+  box-shadow:
+    0 16px 34px rgba(0, 0, 0, 0.18),
+    inset 0 1px 0 rgba(255, 255, 255, 0.035) !important;
+  overflow: hidden !important;
+}
+
+.stats article:hover {
+  border-color: rgba(241, 200, 75, 0.38) !important;
+}
+
+/* كرت Sila Activity يكون مستقل وواضح */
+.stats article:last-child {
+  border-radius: 20px !important;
+  border-color: rgba(140, 198, 63, 0.24) !important;
+}
+
+/* فصل كروت Latest Blocks و Latest Transactions أكثر */
+.home-grid {
+  gap: 28px !important;
+}
+
+.home-panel {
+  border-radius: 20px !important;
+  overflow: hidden !important;
+  border: 1px solid rgba(140, 198, 63, 0.24) !important;
+}
+
+/* تلطيف الفواصل داخل القوائم */
+.feed-row {
+  margin-inline: 0 !important;
+  padding-inline: 22px !important;
+  border-bottom: 1px solid rgba(140, 198, 63, 0.13) !important;
+}
+
+.feed-row:last-child {
+  border-bottom: 0 !important;
+}
+
+/* تجاوب */
+@media (max-width: 900px) {
+  .stats {
+    gap: 12px !important;
+  }
+
+  .home-grid {
+    gap: 20px !important;
+  }
+}
+/* SILA_CARD_GAP_FIX_END */
