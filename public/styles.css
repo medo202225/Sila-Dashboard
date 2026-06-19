@@ -1543,7 +1543,7 @@ html[data-theme="dim"] .topbar {
 }
 /* SILA_VISUAL_POLISH_V1_END */
 
-/* SILA_LOGO_CIRCLE_FINAL_START */
+/* SILA_FINAL_TRUE_CIRCLE_START */
 .topbar {
   height: 92px !important;
   min-height: 92px !important;
@@ -1557,29 +1557,27 @@ html[data-theme="dim"] .topbar {
   align-items: center !important;
   gap: 14px !important;
   flex: 0 0 auto !important;
-  min-width: 305px !important;
+  min-width: 310px !important;
 }
 
 .sila-mark-circle {
-  width: 68px !important;
-  height: 68px !important;
-  flex: 0 0 68px !important;
+  width: 72px !important;
+  height: 72px !important;
+  flex: 0 0 72px !important;
   display: grid !important;
   place-items: center !important;
   border-radius: 50% !important;
   overflow: hidden !important;
-
-  /* دائرة فقط بدون خلفية صلبة */
   background: transparent !important;
   border: 2px solid rgba(255, 255, 255, 0.86) !important;
   box-shadow:
-    0 8px 22px rgba(0, 0, 0, 0.22),
-    0 0 0 1px rgba(37, 211, 102, 0.22) !important;
+    0 9px 24px rgba(0, 0, 0, 0.24),
+    0 0 0 1px rgba(54, 211, 153, 0.24) !important;
 }
 
 .sila-official-mark {
-  width: 86% !important;
-  height: 86% !important;
+  width: 82% !important;
+  height: 82% !important;
   display: block !important;
   object-fit: contain !important;
   object-position: center !important;
@@ -1599,12 +1597,11 @@ html[data-theme="dim"] .topbar {
   white-space: nowrap !important;
 }
 
-/* إخفاء مربع S الزائد يمينًا */
+/* إزالة أي مربع S أو شعار ثانٍ */
 .minibar .network-icon,
 .topbar .network-icon,
 .mini-actions .network-icon,
-.icon-btn.network-icon,
-.mini-actions button:last-child {
+.icon-btn.network-icon {
   display: none !important;
 }
 
@@ -1629,11 +1626,11 @@ nav::-webkit-scrollbar {
 @media (max-width: 1100px) {
   .topbar {
     height: auto !important;
-    min-height: 86px !important;
+    min-height: 88px !important;
   }
 
   .brand {
-    min-width: 250px !important;
+    min-width: 260px !important;
   }
 
   nav {
@@ -1647,18 +1644,13 @@ nav::-webkit-scrollbar {
   }
 
   .sila-mark-circle {
-    width: 58px !important;
-    height: 58px !important;
-    flex-basis: 58px !important;
-  }
-
-  .sila-official-mark {
-    width: 86% !important;
-    height: 86% !important;
+    width: 60px !important;
+    height: 60px !important;
+    flex-basis: 60px !important;
   }
 
   .brand strong {
     font-size: 25px !important;
   }
 }
-/* SILA_LOGO_CIRCLE_FINAL_END */
+/* SILA_FINAL_TRUE_CIRCLE_END */
