@@ -1544,30 +1544,63 @@ html[data-theme="dim"] .topbar {
 /* SILA_VISUAL_POLISH_V1_END */
 
 /* SILA_OFFICIAL_EMBLEM_START */
-.brand { gap: 12px; }
+.brand {
+  gap: 11px;
+  align-items: center;
+  min-width: 172px;
+}
 
+.logo.brand-logo-img,
 .brand-logo-img {
-  width: 48px;
-  height: 48px;
+  width: 42px;
+  height: 42px;
+  flex: 0 0 42px;
   object-fit: contain;
-  border-radius: 14px;
-  background: #ffffff;
-  padding: 4px;
-  border: 1px solid rgba(148, 163, 184, 0.20);
-  box-shadow: 0 12px 30px rgba(25, 92, 50, 0.18);
+  border-radius: 50%;
+  background:
+    radial-gradient(circle at 32% 24%, rgba(255,255,255,0.96), rgba(255,255,255,0.86) 42%, rgba(236,253,245,0.94));
+  padding: 3px;
+  border: 1px solid rgba(25, 92, 50, 0.16);
+  box-shadow:
+    0 8px 20px rgba(25, 92, 50, 0.16),
+    inset 0 0 0 1px rgba(255,255,255,0.55);
+}
+
+.brand strong {
+  display: inline-flex;
+  align-items: center;
+  line-height: 1;
+  letter-spacing: -0.025em;
 }
 
 .network-icon {
   background-image: url("/brand/sila-coin-logo.png");
-  background-size: 76%;
+  background-size: 82%;
   background-repeat: no-repeat;
   background-position: center;
+  background-color: #ffffff;
   color: transparent !important;
+  border: 1px solid rgba(25, 92, 50, 0.16);
 }
 
 body.dark .brand-logo-img,
-body.dim .brand-logo-img {
-  background: rgba(255, 255, 255, 0.96);
-  border-color: rgba(255, 255, 255, 0.16);
+body.dim .brand-logo-img,
+body.dark .network-icon,
+body.dim .network-icon {
+  background-color: rgba(255, 255, 255, 0.94);
+  border-color: rgba(255, 255, 255, 0.18);
+}
+
+@media (max-width: 680px) {
+  .brand {
+    min-width: auto;
+  }
+
+  .logo.brand-logo-img,
+  .brand-logo-img {
+    width: 40px;
+    height: 40px;
+    flex-basis: 40px;
+  }
 }
 /* SILA_OFFICIAL_EMBLEM_END */
