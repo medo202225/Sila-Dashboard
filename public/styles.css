@@ -1807,3 +1807,231 @@ footer {
   }
 }
 /* SILA_FULL_BRAND_THEME_END */
+
+/* SILA_LAYOUT_FINAL_COMPOSITION_START */
+
+/* جعل أعلى الصفحة نظيفًا وغير متداخل */
+.minibar {
+  height: 34px !important;
+  min-height: 34px !important;
+  display: flex !important;
+  align-items: center !important;
+  padding-inline: max(24px, calc((100vw - 1420px) / 2)) !important;
+}
+
+.topbar {
+  position: relative !important;
+  top: auto !important;
+  z-index: 20 !important;
+  height: 96px !important;
+  min-height: 96px !important;
+  padding-inline: max(24px, calc((100vw - 1420px) / 2)) !important;
+}
+
+/* منع أي محتوى من الدخول تحت الهيدر */
+.overview-card,
+.sila-home-dashboard {
+  position: relative !important;
+  z-index: 3 !important;
+  margin-top: 24px !important;
+  margin-bottom: 34px !important;
+}
+
+/* ترتيب المنطقة العليا بحيث تكون فخمة وليست مزدحمة */
+.hero {
+  min-height: 430px !important;
+  padding-top: 70px !important;
+  padding-bottom: 110px !important;
+  margin-top: 0 !important;
+}
+
+.hero-content {
+  max-width: 1420px !important;
+  margin-inline: auto !important;
+  padding-inline: 24px !important;
+}
+
+.hero h1,
+.hero-content h1 {
+  font-size: clamp(34px, 3.2vw, 56px) !important;
+  margin-bottom: 24px !important;
+}
+
+/* كرت الإحصائيات العلوي */
+.sila-home-dashboard,
+.overview-card {
+  max-width: 1420px !important;
+  width: calc(100% - 48px) !important;
+  margin-left: auto !important;
+  margin-right: auto !important;
+  border-radius: 22px !important;
+}
+
+/* الكروت داخل overview */
+.overview-row {
+  min-height: 104px !important;
+  border-radius: 14px !important;
+}
+
+/* تحسين شريط البحث */
+.mega-search {
+  max-width: 860px !important;
+  height: 62px !important;
+  border-radius: 12px !important;
+  overflow: hidden !important;
+}
+
+.mega-search select,
+.mega-search input {
+  height: 62px !important;
+  font-size: 17px !important;
+}
+
+.mega-search button {
+  width: 76px !important;
+}
+
+/* الشعار داخل الهيدر */
+.brand {
+  min-width: 320px !important;
+}
+
+.sila-mark-circle {
+  width: 76px !important;
+  height: 76px !important;
+  flex-basis: 76px !important;
+}
+
+.sila-official-mark {
+  width: 80% !important;
+  height: 80% !important;
+}
+
+.brand strong {
+  font-size: 31px !important;
+}
+
+/* النافبار */
+nav {
+  margin-left: auto !important;
+  gap: 12px !important;
+}
+
+.nav-btn {
+  padding: 13px 18px !important;
+  font-size: 16px !important;
+}
+
+/* لوحة الإحصائيات الكبيرة تحت البحث */
+.stats {
+  max-width: 1420px !important;
+  width: calc(100% - 48px) !important;
+  margin: -58px auto 28px !important;
+  position: relative !important;
+  z-index: 5 !important;
+  border-radius: 18px !important;
+  overflow: hidden !important;
+}
+
+/* الأقسام السفلية */
+.home-grid,
+.page,
+.grid {
+  max-width: 1420px !important;
+  width: calc(100% - 48px) !important;
+  margin-left: auto !important;
+  margin-right: auto !important;
+}
+
+.home-grid {
+  margin-top: 26px !important;
+}
+
+/* إزالة أي بقايا شفافية مزعجة في أزرار overview */
+.overview-card .small-btn,
+.overview-card button,
+.sila-home-dashboard .small-btn,
+.sila-home-dashboard button {
+  opacity: 1 !important;
+  visibility: visible !important;
+}
+
+/* لا نريد الهيدر يغطي أي شيء */
+main,
+#app,
+.view,
+.home-view {
+  position: relative !important;
+  z-index: 1 !important;
+}
+
+/* Scrollbar أهدأ وأجمل */
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, #8cc63f, #d9a018) !important;
+  border-radius: 999px !important;
+  border: 2px solid #03110b !important;
+}
+
+/* تجاوب */
+@media (max-width: 1100px) {
+  .topbar {
+    height: auto !important;
+    min-height: 96px !important;
+    gap: 18px !important;
+  }
+
+  .brand {
+    min-width: auto !important;
+  }
+
+  nav {
+    margin-left: 0 !important;
+    overflow-x: auto !important;
+  }
+
+  .hero {
+    padding-top: 50px !important;
+    min-height: 380px !important;
+  }
+
+  .stats {
+    margin-top: -44px !important;
+  }
+}
+
+@media (max-width: 760px) {
+  .minibar,
+  .topbar {
+    padding-inline: 16px !important;
+  }
+
+  .sila-mark-circle {
+    width: 62px !important;
+    height: 62px !important;
+    flex-basis: 62px !important;
+  }
+
+  .brand strong {
+    font-size: 25px !important;
+  }
+
+  .overview-card,
+  .sila-home-dashboard,
+  .stats,
+  .home-grid,
+  .page,
+  .grid {
+    width: calc(100% - 28px) !important;
+  }
+
+  .hero {
+    min-height: 340px !important;
+    padding-top: 40px !important;
+    padding-bottom: 90px !important;
+  }
+
+  .mega-search {
+    height: auto !important;
+  }
+}
+/* SILA_LAYOUT_FINAL_COMPOSITION_END */
