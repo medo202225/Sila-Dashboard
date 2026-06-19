@@ -2295,15 +2295,16 @@ body {
 }
 /* SILA_HERO_HARD_COMPACT_END */
 
-/* SILA_STATS_OVERVIEW_MATCH_FINAL_START */
+/* SILA_STATS_TRUE_WRAPPER_FIX_START */
 
 /*
-  Final stats spacing:
-  نفس فكرة Sila Network Overview:
-  - الحاوية بدون حدود
-  - الكروت منفصلة فعليًا
-  - gap واضح 18px
-  - دعم direct articles أو wrapper داخلي
+  السبب الحقيقي:
+  stats يحتوي wrapper داخلي، لذلك gap لا يظهر مثل Overview.
+  الحل:
+  - .stats تصبح Grid رئيسي.
+  - أي wrapper داخلي يحتوي article يصبح display: contents.
+  - الكروت نفسها تدخل Grid مباشرة.
+  - Activity يوضع في العمود الرابع ويمتد صفين.
 */
 
 .stats {
@@ -2311,59 +2312,40 @@ body {
   width: calc(100% - 48px) !important;
   margin-left: auto !important;
   margin-right: auto !important;
-  background: transparent !important;
-  border: 0 !important;
-  box-shadow: none !important;
-  overflow: visible !important;
-  padding: 0 !important;
-  gap: 18px !important;
-}
 
-/* الحالة A: الكروت مباشرة داخل .stats */
-.stats:has(> article:nth-child(7)) {
   display: grid !important;
   grid-template-columns: repeat(3, minmax(0, 1fr)) minmax(340px, 1.08fr) !important;
-  grid-template-areas:
-    "price tx gas activity"
-    "market head block activity" !important;
-}
-
-.stats:has(> article:nth-child(7)) > article:nth-child(1) { grid-area: price !important; }
-.stats:has(> article:nth-child(7)) > article:nth-child(2) { grid-area: tx !important; }
-.stats:has(> article:nth-child(7)) > article:nth-child(3) { grid-area: gas !important; }
-.stats:has(> article:nth-child(7)) > article:nth-child(4) { grid-area: market !important; }
-.stats:has(> article:nth-child(7)) > article:nth-child(5) { grid-area: head !important; }
-.stats:has(> article:nth-child(7)) > article:nth-child(6) { grid-area: block !important; }
-.stats:has(> article:nth-child(7)) > article:nth-child(7) { grid-area: activity !important; }
-
-/* الحالة B: wrapper داخلي للكروت الستة + activity بجانبه */
-.stats:not(:has(> article:nth-child(7))) {
-  display: grid !important;
-  grid-template-columns: minmax(0, 3fr) minmax(340px, 1.08fr) !important;
-  align-items: stretch !important;
-}
-
-.stats:not(:has(> article:nth-child(7))) > :first-child {
-  display: grid !important;
-  grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
   grid-template-rows: repeat(2, minmax(112px, auto)) !important;
   gap: 18px !important;
+  grid-auto-flow: row dense !important;
+
+  background: transparent !important;
+  border: 0 !important;
+  box-shadow: none !important;
+  overflow: visible !important;
+  padding: 0 !important;
+}
+
+/* تفكيك wrapper الكروت حتى تظهر الفواصل الحقيقية */
+.stats > *:has(> article) {
+  display: contents !important;
   background: transparent !important;
   border: 0 !important;
   box-shadow: none !important;
   padding: 0 !important;
-  overflow: visible !important;
+  margin: 0 !important;
 }
 
-/* كروت stats */
-.stats article,
-.stats > * > article {
+/* كروت الإحصائيات الستة، سواء مباشرة أو داخل wrapper */
+.stats > article,
+.stats > *:has(> article) > article {
   box-sizing: border-box !important;
   margin: 0 !important;
   width: auto !important;
   height: auto !important;
   min-width: 0 !important;
   min-height: 112px !important;
+
   border-radius: 18px !important;
   border: 1px solid rgba(140, 198, 63, 0.26) !important;
   background:
@@ -2375,9 +2357,11 @@ body {
   overflow: hidden !important;
 }
 
-/* Activity */
-.stats:has(> article:nth-child(7)) > article:nth-child(7),
-.stats:not(:has(> article:nth-child(7))) > :last-child {
+/* Activity: العنصر الوحيد المباشر الذي لا يحتوي article */
+.stats > *:not(:has(> article)):last-child {
+  grid-column: 4 !important;
+  grid-row: 1 / span 2 !important;
+
   min-height: 242px !important;
   border-radius: 20px !important;
   border: 1px solid rgba(140, 198, 63, 0.26) !important;
@@ -2388,19 +2372,28 @@ body {
   box-shadow:
     0 16px 34px rgba(0, 0, 0, 0.22),
     inset 0 1px 0 rgba(255,255,255,0.035) !important;
+  overflow: hidden !important;
 }
 
-/* إزالة أي إحساس بالالتصاق من قواعد قديمة */
+/* لو كان Activity نفسه article مباشر رقم 7 */
+.stats > article:nth-of-type(7) {
+  grid-column: 4 !important;
+  grid-row: 1 / span 2 !important;
+  min-height: 242px !important;
+  border-radius: 20px !important;
+}
+
+/* منع أي قواعد قديمة من لصق الحدود */
 .stats article + article,
-.stats > * > article + article,
-.stats > * + * {
+.stats > * + *,
+.stats > *:has(> article) > article + article {
   margin-left: 0 !important;
 }
 
-/* Hover خفيف */
-.stats article:hover,
-.stats > * > article:hover,
-.stats:not(:has(> article:nth-child(7))) > :last-child:hover {
+/* Hover */
+.stats > article:hover,
+.stats > *:has(> article) > article:hover,
+.stats > *:not(:has(> article)):last-child:hover {
   transform: translateY(-2px) !important;
   border-color: rgba(241, 200, 75, 0.40) !important;
   box-shadow:
@@ -2410,53 +2403,35 @@ body {
 
 /* Responsive */
 @media (max-width: 1100px) {
-  .stats:has(> article:nth-child(7)) {
+  .stats {
     grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
-    grid-template-areas:
-      "price tx"
-      "gas market"
-      "head block"
-      "activity activity" !important;
+    grid-template-rows: auto !important;
     gap: 16px !important;
   }
 
-  .stats:not(:has(> article:nth-child(7))) {
-    grid-template-columns: 1fr !important;
-    gap: 16px !important;
-  }
-
-  .stats:not(:has(> article:nth-child(7))) > :first-child {
-    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
-    gap: 16px !important;
+  .stats > *:not(:has(> article)):last-child,
+  .stats > article:nth-of-type(7) {
+    grid-column: 1 / -1 !important;
+    grid-row: auto !important;
+    min-height: 170px !important;
   }
 }
 
 @media (max-width: 680px) {
   .stats {
     width: calc(100% - 28px) !important;
-  }
-
-  .stats:has(> article:nth-child(7)) {
-    grid-template-columns: 1fr !important;
-    grid-template-areas:
-      "price"
-      "tx"
-      "gas"
-      "market"
-      "head"
-      "block"
-      "activity" !important;
-    gap: 14px !important;
-  }
-
-  .stats:not(:has(> article:nth-child(7))) > :first-child {
     grid-template-columns: 1fr !important;
     gap: 14px !important;
   }
 
-  .stats article,
-  .stats > * > article {
+  .stats > article,
+  .stats > *:has(> article) > article {
     min-height: 96px !important;
   }
+
+  .stats > *:not(:has(> article)):last-child,
+  .stats > article:nth-of-type(7) {
+    min-height: 140px !important;
+  }
 }
-/* SILA_STATS_OVERVIEW_MATCH_FINAL_END */
+/* SILA_STATS_TRUE_WRAPPER_FIX_END */
