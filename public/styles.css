@@ -1543,234 +1543,88 @@ html[data-theme="dim"] .topbar {
 }
 /* SILA_VISUAL_POLISH_V1_END */
 
-/* SILA_OFFICIAL_EMBLEM_START */
-.brand {
-  gap: 11px;
-  align-items: center;
-  min-width: 172px;
-}
+/* SILA_LOGO_RADICAL_FIX_START */
 
-.logo.brand-logo-img,
-.brand-logo-img {
-  width: 42px;
-  height: 42px;
-  flex: 0 0 42px;
-  object-fit: contain;
-  border-radius: 50%;
-  background:
-    radial-gradient(circle at 32% 24%, rgba(255,255,255,0.96), rgba(255,255,255,0.86) 42%, rgba(236,253,245,0.94));
-  padding: 3px;
-  border: 1px solid rgba(25, 92, 50, 0.16);
-  box-shadow:
-    0 8px 20px rgba(25, 92, 50, 0.16),
-    inset 0 0 0 1px rgba(255,255,255,0.55);
-}
-
-.brand strong {
-  display: inline-flex;
-  align-items: center;
-  line-height: 1;
-  letter-spacing: -0.025em;
-}
-
-.network-icon {
-  background-image: url("/brand/sila-coin-logo.png");
-  background-size: 82%;
-  background-repeat: no-repeat;
-  background-position: center;
-  background-color: #ffffff;
-  color: transparent !important;
-  border: 1px solid rgba(25, 92, 50, 0.16);
-}
-
-body.dark .brand-logo-img,
-body.dim .brand-logo-img,
-body.dark .network-icon,
-body.dim .network-icon {
-  background-color: rgba(255, 255, 255, 0.94);
-  border-color: rgba(255, 255, 255, 0.18);
-}
-
-@media (max-width: 680px) {
-  .brand {
-    min-width: auto;
-  }
-
-  .logo.brand-logo-img,
-  .brand-logo-img {
-    width: 40px;
-    height: 40px;
-    flex-basis: 40px;
-  }
-}
-/* SILA_OFFICIAL_EMBLEM_END */
-
-/* SILA_HEADER_BALANCE_START */
+/* Brand/header: one source of truth */
 .topbar {
-  overflow: visible;
+  height: 92px !important;
+  min-height: 92px !important;
+  display: flex !important;
+  align-items: center !important;
+  overflow: visible !important;
 }
 
 .brand {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  flex: 0 0 auto;
-  min-width: 220px;
+  display: flex !important;
+  align-items: center !important;
+  gap: 14px !important;
+  flex: 0 0 auto !important;
+  min-width: 300px !important;
 }
 
-.logo.brand-logo-img,
-.brand-logo-img {
-  width: 54px;
-  height: 54px;
-  flex: 0 0 54px;
-  object-fit: contain;
-  border-radius: 50%;
-  background: #ffffff;
-  padding: 3px;
-  border: 1px solid rgba(25, 92, 50, 0.16);
-  box-shadow:
-    0 8px 20px rgba(25, 92, 50, 0.18),
-    inset 0 0 0 1px rgba(255,255,255,0.70);
+/* Official Sila mark: isolated from legacy .logo rules */
+.sila-official-mark {
+  display: block !important;
+  width: 72px !important;
+  height: 72px !important;
+  flex: 0 0 72px !important;
+  object-fit: contain !important;
+  object-position: center !important;
+  background: transparent !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  box-shadow: none !important;
+  max-width: none !important;
+  max-height: none !important;
 }
 
 .brand strong {
-  font-size: 27px;
-  line-height: 1;
-  letter-spacing: -0.055em;
-  white-space: nowrap;
+  display: block !important;
+  font-size: 30px !important;
+  line-height: 1 !important;
+  letter-spacing: -0.06em !important;
+  white-space: nowrap !important;
 }
 
-/* منع ظهور شعار مقصوص في يمين الهيدر أو شريط الأدوات */
+/* Remove the extra S/logo button from the right top controls */
 .minibar .network-icon,
 .topbar .network-icon,
 .mini-actions .network-icon,
-.icon-btn.network-icon {
-  background-image: none !important;
-  background-size: auto !important;
-  background-position: center !important;
-  color: var(--text) !important;
-}
-
-/* إزالة شريط التمرير الرمادي تحت القائمة مع إبقاء القائمة قابلة للاستخدام */
-nav {
-  scrollbar-width: none;
-  -ms-overflow-style: none;
-}
-
-nav::-webkit-scrollbar {
-  display: none;
-}
-
-@media (max-width: 1100px) {
-  nav {
-    overflow-x: auto;
-    max-width: none;
-    gap: 4px;
-    padding-bottom: 0;
-  }
-
-  .nav-btn {
-    padding-left: 12px;
-    padding-right: 12px;
-    white-space: nowrap;
-  }
-
-  .topbar {
-    gap: 12px;
-  }
-}
-
-@media (max-width: 680px) {
-  .brand {
-    min-width: auto;
-  }
-
-  .logo.brand-logo-img,
-  .brand-logo-img {
-    width: 44px;
-    height: 44px;
-    flex-basis: 44px;
-  }
-
-  .brand strong {
-    font-size: 24px;
-  }
-}
-/* SILA_HEADER_BALANCE_END */
-
-/* SILA_HEADER_FINAL_BALANCE_START */
-.minibar {
-  height: 34px;
-  justify-content: space-between;
-}
-
-.topbar {
-  height: 86px;
-  align-items: center;
-  overflow: hidden;
-}
-
-.brand {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  min-width: 260px;
-}
-
-.logo.brand-logo-img,
-.brand-logo-img {
-  width: 58px;
-  height: 58px;
-  flex: 0 0 58px;
-  border-radius: 50%;
-  object-fit: contain;
-  background: #ffffff;
-  padding: 3px;
-  border: 1px solid rgba(25, 92, 50, 0.18);
-  box-shadow: 0 10px 24px rgba(25, 92, 50, 0.18);
-}
-
-.brand strong {
-  font-size: 28px;
-  line-height: 1;
-  letter-spacing: -0.06em;
-  white-space: nowrap;
-}
-
-/* إخفاء مربع S الصغير في أعلى اليمين */
-.mini-actions .network-icon,
-.minibar .network-icon,
-.topbar .network-icon,
-.icon-btn.network-icon {
+.icon-btn.network-icon,
+.mini-actions button:last-child {
   display: none !important;
 }
 
+/* Navigation without the grey scrollbar */
 nav {
-  display: flex;
-  align-items: center;
-  gap: 10px;
+  display: flex !important;
+  align-items: center !important;
+  gap: 12px !important;
   overflow: visible !important;
   max-width: none !important;
-  scrollbar-width: none;
-  -ms-overflow-style: none;
+  scrollbar-width: none !important;
+  -ms-overflow-style: none !important;
 }
 
 nav::-webkit-scrollbar {
-  display: none;
+  display: none !important;
 }
 
 .nav-btn {
-  white-space: nowrap;
+  white-space: nowrap !important;
 }
 
+/* Keep mobile usable */
 @media (max-width: 1100px) {
   .topbar {
-    height: auto;
-    min-height: 82px;
+    height: auto !important;
+    min-height: 86px !important;
   }
 
   .brand {
-    min-width: 220px;
+    min-width: 250px !important;
   }
 
   nav {
@@ -1780,18 +1634,17 @@ nav::-webkit-scrollbar {
 
 @media (max-width: 680px) {
   .brand {
-    min-width: auto;
+    min-width: auto !important;
   }
 
-  .logo.brand-logo-img,
-  .brand-logo-img {
-    width: 48px;
-    height: 48px;
-    flex-basis: 48px;
+  .sila-official-mark {
+    width: 58px !important;
+    height: 58px !important;
+    flex-basis: 58px !important;
   }
 
   .brand strong {
-    font-size: 24px;
+    font-size: 25px !important;
   }
 }
-/* SILA_HEADER_FINAL_BALANCE_END */
+/* SILA_LOGO_RADICAL_FIX_END */
