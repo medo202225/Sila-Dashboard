@@ -2507,3 +2507,120 @@ window.silaRenderRuntimePage = silaRenderRuntimePage;
   }
 }());
 // SILA_PRETTY_ROUTE_BOOTSTRAP_END
+
+// SILA_CLIENT_ROUTER_START
+(function () {
+  const pageRoutes = {
+    blocks: "/blocks",
+    transactions: "/transactions",
+    runtime: "/runtime",
+    consensus: "/consensus",
+  };
+
+  const navRoutes = {
+    home: "/",
+    explorer: "/blocks",
+    validators: "/consensus",
+    more: "/runtime",
+  };
+
+  function setActive(viewName) {
+    document.querySelectorAll(".nav-btn").forEach((node) => node.classList.remove("active"));
+    const button = document.querySelector("[data-view=\"" + viewName + "\"]");
+    if (button) button.classList.add("active");
+  }
+
+  function renderPage(page) {
+    if (page === "blocks" && typeof window.silaRenderBlocksPage === "function") {
+      setActive("explorer");
+      window.silaRenderBlocksPage(null);
+      return true;
+    }
+
+    if (page === "transactions" && typeof window.silaRenderTransactionsPage === "function") {
+      setActive("explorer");
+      window.silaRenderTransactionsPage();
+      return true;
+    }
+
+    if (page === "runtime" && typeof window.silaRenderRuntimePage === "function") {
+      setActive("more");
+      window.silaRenderRuntimePage();
+      return true;
+    }
+
+    if (page === "consensus" && typeof window.silaRenderConsensusPage === "function") {
+      setActive("validators");
+      window.silaRenderConsensusPage();
+      return true;
+    }
+
+    return false;
+  }
+
+  function pageFromPath(pathname) {
+    const path = String(pathname || window.location.pathname || "/").replace(/\/+$/, "") || "/";
+    if (path === "/blocks") return "blocks";
+    if (path === "/transactions") return "transactions";
+    if (path === "/runtime") return "runtime";
+    if (path === "/consensus") return "consensus";
+    return null;
+  }
+
+  function goPage(page, push) {
+    if (!pageRoutes[page]) return false;
+
+    const ok = renderPage(page);
+    if (ok && push && window.location.pathname !== pageRoutes[page]) {
+      history.pushState({ silaPage: page }, "", pageRoutes[page]);
+    }
+
+    return ok;
+  }
+
+  document.addEventListener("click", (event) => {
+    const pageButton = event.target.closest("[data-page]");
+    if (pageButton) {
+      const page = pageButton.getAttribute("data-page");
+      if (pageRoutes[page]) {
+        event.preventDefault();
+        event.stopImmediatePropagation();
+        goPage(page, true);
+        return;
+      }
+    }
+
+    const navButton = event.target.closest(".nav-btn[data-view]");
+    if (!navButton) return;
+
+    const view = navButton.getAttribute("data-view");
+    const route = navRoutes[view];
+
+    if (!route) return;
+
+    event.preventDefault();
+    event.stopImmediatePropagation();
+
+    if (view === "home") {
+      if (typeof showView === "function") showView("home");
+      if (window.location.pathname !== "/") history.pushState({ silaView: "home" }, "", "/");
+      return;
+    }
+
+    const page = pageFromPath(route);
+    if (page) goPage(page, true);
+  }, true);
+
+  window.addEventListener("popstate", () => {
+    const page = pageFromPath(window.location.pathname);
+    if (page) {
+      goPage(page, false);
+      return;
+    }
+
+    if (window.location.pathname === "/" && typeof showView === "function") {
+      showView("home");
+    }
+  });
+}());
+// SILA_CLIENT_ROUTER_END
