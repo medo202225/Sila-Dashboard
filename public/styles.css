@@ -2467,3 +2467,98 @@ body {
   }
 }
 /* SILA_STATS_REAL_GRID_END */
+
+/* SILA_REAL_CARD_SHRINK_GAP_START */
+
+/*
+  حل جذري:
+  لا نعتمد على gap فقط.
+  كل كرت يصبح أصغر داخل خليته، لذلك يظهر فراغ حقيقي بين الحدود.
+*/
+.stats {
+  background: transparent !important;
+  border: 0 !important;
+  box-shadow: none !important;
+  overflow: visible !important;
+  gap: 0 !important;
+  padding: 0 !important;
+}
+
+/* الكروت الستة + كرت النشاط */
+.stats > article {
+  box-sizing: border-box !important;
+  width: calc(100% - 20px) !important;
+  height: calc(100% - 20px) !important;
+  margin: 10px !important;
+  min-height: 96px !important;
+  border-radius: 18px !important;
+  border: 1px solid rgba(140, 198, 63, 0.25) !important;
+  background:
+    radial-gradient(circle at 18% 0%, rgba(140,198,63,0.10), transparent 40%),
+    linear-gradient(145deg, rgba(7, 35, 21, 0.92), rgba(2, 15, 9, 0.98)) !important;
+  box-shadow:
+    0 13px 28px rgba(0, 0, 0, 0.18),
+    inset 0 1px 0 rgba(255,255,255,0.035) !important;
+  overflow: hidden !important;
+}
+
+/* كرت النشاط الكبير */
+.stats > article:last-child {
+  width: calc(100% - 20px) !important;
+  height: calc(100% - 20px) !important;
+  margin: 10px !important;
+  border-radius: 20px !important;
+  background:
+    radial-gradient(circle at 18% 12%, rgba(140,198,63,0.10), transparent 35%),
+    radial-gradient(circle at 86% 74%, rgba(34,166,242,0.12), transparent 38%),
+    linear-gradient(145deg, rgba(5, 29, 18, 0.94), rgba(1, 12, 8, 0.99)) !important;
+}
+
+/* تقليل حجم المحتوى قليلًا حتى لا تضيق الكروت */
+.stats > article small,
+.stats > article h3 {
+  letter-spacing: .055em !important;
+}
+
+.stats > article b,
+.stats > article strong {
+  font-size: clamp(20px, 1.3vw, 26px) !important;
+}
+
+/* الأيقونات أصغر وأنظف */
+.stats-icon,
+.stats article .icon,
+.stats article svg {
+  transform: scale(0.92) !important;
+}
+
+/* فصل بصري إضافي للبانلات تحتها */
+.home-grid {
+  gap: 32px !important;
+  margin-top: 26px !important;
+}
+
+.home-panel {
+  border-radius: 20px !important;
+  border: 1px solid rgba(140, 198, 63, 0.24) !important;
+}
+
+/* تجاوب */
+@media (max-width: 900px) {
+  .stats > article,
+  .stats > article:last-child {
+    width: calc(100% - 16px) !important;
+    height: calc(100% - 16px) !important;
+    margin: 8px !important;
+  }
+}
+
+@media (max-width: 680px) {
+  .stats > article,
+  .stats > article:last-child {
+    width: 100% !important;
+    height: auto !important;
+    margin: 0 0 14px 0 !important;
+  }
+}
+/* SILA_REAL_CARD_SHRINK_GAP_END */
