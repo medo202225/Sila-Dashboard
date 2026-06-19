@@ -2295,115 +2295,109 @@ body {
 }
 /* SILA_HERO_HARD_COMPACT_END */
 
-/* SILA_CARD_GAP_FIX_START */
+/* SILA_STATS_OVERVIEW_SPACING_START */
 
-/* فصل كروت الإحصائيات حتى لا تبدو متداخلة */
+/*
+  حل جذري:
+  نجعل stats مثل Sila Network Overview:
+  - خلفية الحاوية شفافة
+  - gap حقيقي 18px
+  - كل كرت مستقل بحدوده
+  - ندعم حالتين:
+    1) الكروت direct children داخل .stats
+    2) الكروت داخل wrapper داخلي
+*/
+
+/* الحاوية العامة */
 .stats {
-  gap: 14px !important;
-  padding: 0 !important;
+  max-width: 1420px !important;
+  width: calc(100% - 48px) !important;
+  margin-left: auto !important;
+  margin-right: auto !important;
   background: transparent !important;
   border: 0 !important;
   box-shadow: none !important;
   overflow: visible !important;
+  padding: 0 !important;
 }
 
-.stats article {
-  border-radius: 18px !important;
-  border: 1px solid rgba(140, 198, 63, 0.26) !important;
-  box-shadow:
-    0 16px 34px rgba(0, 0, 0, 0.18),
-    inset 0 1px 0 rgba(255, 255, 255, 0.035) !important;
-  overflow: hidden !important;
-}
-
-.stats article:hover {
-  border-color: rgba(241, 200, 75, 0.38) !important;
-}
-
-/* كرت Sila Activity يكون مستقل وواضح */
-.stats article:last-child {
-  border-radius: 20px !important;
-  border-color: rgba(140, 198, 63, 0.24) !important;
-}
-
-/* فصل كروت Latest Blocks و Latest Transactions أكثر */
-.home-grid {
-  gap: 28px !important;
-}
-
-.home-panel {
-  border-radius: 20px !important;
-  overflow: hidden !important;
-  border: 1px solid rgba(140, 198, 63, 0.24) !important;
-}
-
-/* تلطيف الفواصل داخل القوائم */
-.feed-row {
-  margin-inline: 0 !important;
-  padding-inline: 22px !important;
-  border-bottom: 1px solid rgba(140, 198, 63, 0.13) !important;
-}
-
-.feed-row:last-child {
-  border-bottom: 0 !important;
-}
-
-/* تجاوب */
-@media (max-width: 900px) {
-  .stats {
-    gap: 12px !important;
-  }
-
-  .home-grid {
-    gap: 20px !important;
-  }
-}
-/* SILA_CARD_GAP_FIX_END */
-
-/* SILA_STATS_REAL_GRID_START */
-
-/* Grid حقيقي: لا تلاصق بين الكروت */
-.stats {
+/* الحالة الأولى: الكروت مباشرة داخل .stats */
+.stats:has(> article:nth-child(7)) {
   display: grid !important;
-  grid-template-columns: repeat(3, minmax(0, 1fr)) minmax(320px, 1.08fr) !important;
-  grid-template-rows: repeat(2, minmax(112px, auto)) !important;
+  grid-template-columns: repeat(3, minmax(0, 1fr)) minmax(340px, 1.08fr) !important;
   grid-template-areas:
     "price tx gas activity"
     "market head block activity" !important;
   gap: 18px !important;
-  padding: 0 !important;
+}
+
+.stats:has(> article:nth-child(7)) > article:nth-child(1) { grid-area: price !important; }
+.stats:has(> article:nth-child(7)) > article:nth-child(2) { grid-area: tx !important; }
+.stats:has(> article:nth-child(7)) > article:nth-child(3) { grid-area: gas !important; }
+.stats:has(> article:nth-child(7)) > article:nth-child(4) { grid-area: market !important; }
+.stats:has(> article:nth-child(7)) > article:nth-child(5) { grid-area: head !important; }
+.stats:has(> article:nth-child(7)) > article:nth-child(6) { grid-area: block !important; }
+.stats:has(> article:nth-child(7)) > article:nth-child(7) { grid-area: activity !important; }
+
+/* الحالة الثانية: يوجد wrapper للكروت الستة + كرت Activity */
+.stats:not(:has(> article:nth-child(7))) {
+  display: grid !important;
+  grid-template-columns: minmax(0, 3fr) minmax(340px, 1.08fr) !important;
+  gap: 18px !important;
+  align-items: stretch !important;
+}
+
+.stats:not(:has(> article:nth-child(7))) > :first-child {
+  display: grid !important;
+  grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  grid-template-rows: repeat(2, minmax(112px, auto)) !important;
+  gap: 18px !important;
   background: transparent !important;
   border: 0 !important;
   box-shadow: none !important;
+  padding: 0 !important;
   overflow: visible !important;
 }
 
-/* تحديد مكان كل كرت بوضوح */
-.stats > article:nth-child(1) { grid-area: price !important; }
-.stats > article:nth-child(2) { grid-area: tx !important; }
-.stats > article:nth-child(3) { grid-area: gas !important; }
-.stats > article:nth-child(4) { grid-area: market !important; }
-.stats > article:nth-child(5) { grid-area: head !important; }
-.stats > article:nth-child(6) { grid-area: block !important; }
-.stats > article:nth-child(7) { grid-area: activity !important; }
-
-.stats > article {
+/* أي كرت داخل stats، سواء مباشر أو داخل wrapper */
+.stats article,
+.stats > * > article {
+  box-sizing: border-box !important;
   margin: 0 !important;
+  width: auto !important;
+  height: auto !important;
   min-width: 0 !important;
   min-height: 112px !important;
   border-radius: 20px !important;
   border: 1px solid rgba(140, 198, 63, 0.26) !important;
   background:
-    radial-gradient(circle at 14% 0%, rgba(140,198,63,0.11), transparent 38%),
+    radial-gradient(circle at 16% 0%, rgba(140,198,63,0.11), transparent 38%),
     linear-gradient(145deg, rgba(7, 34, 20, 0.92), rgba(2, 16, 10, 0.98)) !important;
   box-shadow:
     0 16px 34px rgba(0, 0, 0, 0.22),
     inset 0 1px 0 rgba(255, 255, 255, 0.035) !important;
   overflow: hidden !important;
-  background-clip: padding-box !important;
 }
 
-.stats > article:hover {
+/* كرت Activity */
+.stats:has(> article:nth-child(7)) > article:nth-child(7),
+.stats:not(:has(> article:nth-child(7))) > :last-child {
+  min-height: 242px !important;
+  border-radius: 22px !important;
+  background:
+    radial-gradient(circle at 18% 12%, rgba(140,198,63,0.10), transparent 36%),
+    radial-gradient(circle at 86% 74%, rgba(34,166,242,0.12), transparent 38%),
+    linear-gradient(145deg, rgba(5, 29, 18, 0.94), rgba(1, 12, 8, 0.99)) !important;
+  border: 1px solid rgba(140, 198, 63, 0.26) !important;
+  box-shadow:
+    0 16px 34px rgba(0, 0, 0, 0.22),
+    inset 0 1px 0 rgba(255,255,255,0.035) !important;
+}
+
+/* Hover موحد */
+.stats article:hover,
+.stats > * > article:hover,
+.stats:not(:has(> article:nth-child(7))) > :last-child:hover {
   transform: translateY(-2px) !important;
   border-color: rgba(241, 200, 75, 0.40) !important;
   box-shadow:
@@ -2411,26 +2405,18 @@ body {
     0 0 0 1px rgba(217,160,24,0.12) !important;
 }
 
-/* Activity كرت مستقل وليس جزء ملتصق */
-.stats > article:nth-child(7) {
-  min-height: 242px !important;
-  border-radius: 22px !important;
-  background:
-    radial-gradient(circle at 18% 12%, rgba(140,198,63,0.10), transparent 36%),
-    radial-gradient(circle at 85% 78%, rgba(34,166,242,0.12), transparent 40%),
-    linear-gradient(145deg, rgba(5, 29, 18, 0.94), rgba(1, 12, 8, 0.99)) !important;
-}
-
-/* منع أي border-collapse بصري */
-.stats > article + article {
+/* منع أي حدود ملتصقة قديمة */
+.stats article + article,
+.stats > * + *,
+.stats > * > article + article {
   margin-left: 0 !important;
+  border-left-width: 1px !important;
 }
 
 /* تجاوب */
 @media (max-width: 1100px) {
-  .stats {
+  .stats:has(> article:nth-child(7)) {
     grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
-    grid-template-rows: auto !important;
     grid-template-areas:
       "price tx"
       "gas market"
@@ -2439,13 +2425,23 @@ body {
     gap: 16px !important;
   }
 
-  .stats > article:nth-child(7) {
-    min-height: 170px !important;
+  .stats:not(:has(> article:nth-child(7))) {
+    grid-template-columns: 1fr !important;
+    gap: 16px !important;
+  }
+
+  .stats:not(:has(> article:nth-child(7))) > :first-child {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 16px !important;
   }
 }
 
 @media (max-width: 680px) {
   .stats {
+    width: calc(100% - 28px) !important;
+  }
+
+  .stats:has(> article:nth-child(7)) {
     grid-template-columns: 1fr !important;
     grid-template-areas:
       "price"
@@ -2458,107 +2454,14 @@ body {
     gap: 14px !important;
   }
 
-  .stats > article {
+  .stats:not(:has(> article:nth-child(7))) > :first-child {
+    grid-template-columns: 1fr !important;
+    gap: 14px !important;
+  }
+
+  .stats article,
+  .stats > * > article {
     min-height: 96px !important;
   }
-
-  .stats > article:nth-child(7) {
-    min-height: 140px !important;
-  }
 }
-/* SILA_STATS_REAL_GRID_END */
-
-/* SILA_REAL_CARD_SHRINK_GAP_START */
-
-/*
-  حل جذري:
-  لا نعتمد على gap فقط.
-  كل كرت يصبح أصغر داخل خليته، لذلك يظهر فراغ حقيقي بين الحدود.
-*/
-.stats {
-  background: transparent !important;
-  border: 0 !important;
-  box-shadow: none !important;
-  overflow: visible !important;
-  gap: 0 !important;
-  padding: 0 !important;
-}
-
-/* الكروت الستة + كرت النشاط */
-.stats > article {
-  box-sizing: border-box !important;
-  width: calc(100% - 20px) !important;
-  height: calc(100% - 20px) !important;
-  margin: 10px !important;
-  min-height: 96px !important;
-  border-radius: 18px !important;
-  border: 1px solid rgba(140, 198, 63, 0.25) !important;
-  background:
-    radial-gradient(circle at 18% 0%, rgba(140,198,63,0.10), transparent 40%),
-    linear-gradient(145deg, rgba(7, 35, 21, 0.92), rgba(2, 15, 9, 0.98)) !important;
-  box-shadow:
-    0 13px 28px rgba(0, 0, 0, 0.18),
-    inset 0 1px 0 rgba(255,255,255,0.035) !important;
-  overflow: hidden !important;
-}
-
-/* كرت النشاط الكبير */
-.stats > article:last-child {
-  width: calc(100% - 20px) !important;
-  height: calc(100% - 20px) !important;
-  margin: 10px !important;
-  border-radius: 20px !important;
-  background:
-    radial-gradient(circle at 18% 12%, rgba(140,198,63,0.10), transparent 35%),
-    radial-gradient(circle at 86% 74%, rgba(34,166,242,0.12), transparent 38%),
-    linear-gradient(145deg, rgba(5, 29, 18, 0.94), rgba(1, 12, 8, 0.99)) !important;
-}
-
-/* تقليل حجم المحتوى قليلًا حتى لا تضيق الكروت */
-.stats > article small,
-.stats > article h3 {
-  letter-spacing: .055em !important;
-}
-
-.stats > article b,
-.stats > article strong {
-  font-size: clamp(20px, 1.3vw, 26px) !important;
-}
-
-/* الأيقونات أصغر وأنظف */
-.stats-icon,
-.stats article .icon,
-.stats article svg {
-  transform: scale(0.92) !important;
-}
-
-/* فصل بصري إضافي للبانلات تحتها */
-.home-grid {
-  gap: 32px !important;
-  margin-top: 26px !important;
-}
-
-.home-panel {
-  border-radius: 20px !important;
-  border: 1px solid rgba(140, 198, 63, 0.24) !important;
-}
-
-/* تجاوب */
-@media (max-width: 900px) {
-  .stats > article,
-  .stats > article:last-child {
-    width: calc(100% - 16px) !important;
-    height: calc(100% - 16px) !important;
-    margin: 8px !important;
-  }
-}
-
-@media (max-width: 680px) {
-  .stats > article,
-  .stats > article:last-child {
-    width: 100% !important;
-    height: auto !important;
-    margin: 0 0 14px 0 !important;
-  }
-}
-/* SILA_REAL_CARD_SHRINK_GAP_END */
+/* SILA_STATS_OVERVIEW_SPACING_END */
