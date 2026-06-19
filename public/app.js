@@ -2448,3 +2448,62 @@ document.addEventListener("click", (event) => {
 
 window.silaRenderRuntimePage = silaRenderRuntimePage;
 // SILA_RUNTIME_PAGE_END
+
+// SILA_PRETTY_ROUTE_BOOTSTRAP_START
+(function () {
+  function setSilaNavActive(viewName) {
+    document.querySelectorAll(".nav-btn").forEach((node) => node.classList.remove("active"));
+    const button = document.querySelector("[data-view=\"" + viewName + "\"]");
+    if (button) button.classList.add("active");
+  }
+
+  function callIfAvailable(functionName) {
+    if (typeof window[functionName] !== "function") return false;
+    window[functionName](null);
+    return true;
+  }
+
+  function fallbackView(viewName) {
+    if (typeof showView !== "function") return false;
+    showView(viewName);
+    return true;
+  }
+
+  function activatePrettyRoute(pathname) {
+    const path = String(pathname || window.location.pathname || "/").replace(/\/+$/, "") || "/";
+
+    window.setTimeout(() => {
+      if (path === "/blocks") {
+        setSilaNavActive("explorer");
+        if (!callIfAvailable("silaRenderBlocksPage")) fallbackView("explorer");
+        return;
+      }
+
+      if (path === "/transactions") {
+        setSilaNavActive("explorer");
+        if (!callIfAvailable("silaRenderTransactionsPage")) fallbackView("explorer");
+        return;
+      }
+
+      if (path === "/runtime") {
+        setSilaNavActive("more");
+        if (!callIfAvailable("silaRenderRuntimePage")) fallbackView("more");
+        return;
+      }
+
+      if (path === "/consensus") {
+        setSilaNavActive("validators");
+        if (!callIfAvailable("silaRenderConsensusPage")) fallbackView("validators");
+      }
+    }, 0);
+  }
+
+  window.silaActivatePrettyRoute = activatePrettyRoute;
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", () => activatePrettyRoute(window.location.pathname));
+  } else {
+    activatePrettyRoute(window.location.pathname);
+  }
+}());
+// SILA_PRETTY_ROUTE_BOOTSTRAP_END
