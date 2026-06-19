@@ -2016,3 +2016,138 @@ main,
   }
 }
 /* SILA_LAYOUT_FINAL_COMPOSITION_END */
+
+/* SILA_FINAL_VISUAL_DENSITY_START */
+
+/* تثبيت الهيدر والشعار كما هو، فقط تحسين التوازن */
+.topbar {
+  height: 88px !important;
+  min-height: 88px !important;
+}
+
+.sila-mark-circle {
+  width: 70px !important;
+  height: 70px !important;
+  flex-basis: 70px !important;
+}
+
+.sila-official-mark {
+  width: 82% !important;
+  height: 82% !important;
+}
+
+.brand strong {
+  font-size: 30px !important;
+}
+
+/* تقليل المساحات الزائدة أعلى الصفحة */
+.overview-card,
+.sila-home-dashboard {
+  margin-top: 22px !important;
+  margin-bottom: 22px !important;
+}
+
+/* الهيرو كان طويلًا جدًا؛ نخليه فخم لكن أكثر عملية */
+.hero {
+  min-height: 350px !important;
+  padding-top: 52px !important;
+  padding-bottom: 78px !important;
+}
+
+.hero h1,
+.hero-content h1 {
+  font-size: clamp(34px, 3vw, 50px) !important;
+  margin-bottom: 22px !important;
+}
+
+/* البحث يكون واضح ومركز */
+.mega-search {
+  max-width: 900px !important;
+  height: 60px !important;
+}
+
+.mega-search select,
+.mega-search input {
+  height: 60px !important;
+}
+
+/* رفع كرت الإحصائيات بدل الفراغ الكبير */
+.stats {
+  margin-top: -42px !important;
+  margin-bottom: 34px !important;
+}
+
+/* تحسين شكل الإحصائيات */
+.stats article {
+  min-height: 112px !important;
+}
+
+/* تقليل الفراغ بين الكروت السفلية */
+.home-grid {
+  margin-top: 18px !important;
+  gap: 22px !important;
+}
+
+.home-panel {
+  min-height: auto !important;
+}
+
+/* كرت آخر المعاملات عندما يكون فارغًا لا يأخذ إحساسًا ميتًا */
+.home-panel:has(#homeTxList),
+.home-panel:has(.empty-state) {
+  background:
+    radial-gradient(circle at 80% 0%, rgba(140, 198, 63, 0.08), transparent 30%),
+    linear-gradient(145deg, rgba(6, 26, 16, 0.94), rgba(2, 13, 8, 0.98)) !important;
+}
+
+/* Footer أكثر هدوءًا */
+footer {
+  margin-top: 54px !important;
+  padding-top: 38px !important;
+  border-top: 1px solid rgba(140, 198, 63, 0.18) !important;
+}
+
+/* تحسين التصفح */
+.nav-btn {
+  padding: 12px 17px !important;
+}
+
+/* منع أي تمدد غريب */
+body {
+  overflow-x: hidden !important;
+}
+
+@media (max-width: 1100px) {
+  .hero {
+    min-height: 330px !important;
+    padding-top: 42px !important;
+    padding-bottom: 70px !important;
+  }
+
+  .stats {
+    margin-top: -34px !important;
+  }
+}
+
+@media (max-width: 760px) {
+  .topbar {
+    min-height: 84px !important;
+  }
+
+  .sila-mark-circle {
+    width: 58px !important;
+    height: 58px !important;
+    flex-basis: 58px !important;
+  }
+
+  .hero {
+    min-height: 300px !important;
+    padding-top: 34px !important;
+    padding-bottom: 62px !important;
+  }
+
+  .stats {
+    margin-top: -24px !important;
+  }
+}
+/* SILA_FINAL_VISUAL_DENSITY_END */
