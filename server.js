@@ -624,6 +624,7 @@ async function blocksPage(query) {
 const server = http.createServer(async (req, res) => {
   const url = new URL(req.url, "http://" + req.headers.host);
   try {
+    if (url.pathname === "/api/runtime/status") return sendJson(res, 200, await runtimePage());
     if (url.pathname === "/api/sila/runtime") return sendJson(res, 200, await runtimePage());
     if (url.pathname === "/api/sila/consensus") return sendJson(res, 200, await consensusPage());
     // SILA_FAVICON_ROUTE_START
