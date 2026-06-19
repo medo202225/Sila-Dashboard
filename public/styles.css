@@ -2198,3 +2198,99 @@ body {
   }
 }
 /* SILA_FINAL_COMPACT_HERO_END */
+
+/* SILA_HERO_HARD_COMPACT_START */
+
+/* Hero نهائي: قصير، فخم، ويُظهر الإحصائيات في الشاشة الأولى */
+.hero {
+  height: 300px !important;
+  min-height: 300px !important;
+  max-height: 300px !important;
+  padding-top: 0 !important;
+  padding-bottom: 0 !important;
+  display: flex !important;
+  align-items: center !important;
+}
+
+.hero-content {
+  width: 100% !important;
+  max-width: 1420px !important;
+  margin-inline: auto !important;
+  padding-inline: 24px !important;
+  transform: translateY(-8px) !important;
+}
+
+.hero h1,
+.hero-content h1 {
+  font-size: clamp(32px, 2.55vw, 44px) !important;
+  line-height: 1.08 !important;
+  margin: 0 0 18px 0 !important;
+}
+
+.mega-search {
+  max-width: 860px !important;
+  height: 56px !important;
+  border-radius: 12px !important;
+}
+
+.mega-search select,
+.mega-search input {
+  height: 56px !important;
+  font-size: 16px !important;
+}
+
+.mega-search button {
+  width: 70px !important;
+}
+
+/* إظهار كرت الإحصائيات مباشرة بعد الهيرو */
+.stats {
+  margin-top: -28px !important;
+  margin-bottom: 28px !important;
+  position: relative !important;
+  z-index: 8 !important;
+}
+
+.stats article {
+  min-height: 104px !important;
+}
+
+/* تقليل المسافة العامة */
+.overview-card,
+.sila-home-dashboard {
+  margin-top: 18px !important;
+  margin-bottom: 18px !important;
+}
+
+.home-grid {
+  margin-top: 18px !important;
+}
+
+@media (max-width: 1100px) {
+  .hero {
+    height: 280px !important;
+    min-height: 280px !important;
+    max-height: 280px !important;
+  }
+
+  .stats {
+    margin-top: -22px !important;
+  }
+}
+
+@media (max-width: 760px) {
+  .hero {
+    height: 250px !important;
+    min-height: 250px !important;
+    max-height: 250px !important;
+  }
+
+  .hero-content {
+    transform: none !important;
+  }
+
+  .stats {
+    margin-top: -16px !important;
+  }
+}
+/* SILA_HERO_HARD_COMPACT_END */
