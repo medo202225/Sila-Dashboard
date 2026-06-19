@@ -2151,3 +2151,50 @@ body {
   }
 }
 /* SILA_FINAL_VISUAL_DENSITY_END */
+
+/* SILA_FINAL_COMPACT_HERO_START */
+.hero {
+  min-height: 285px !important;
+  padding-top: 44px !important;
+  padding-bottom: 62px !important;
+}
+
+.hero h1,
+.hero-content h1 {
+  font-size: clamp(32px, 2.7vw, 46px) !important;
+  margin-bottom: 20px !important;
+}
+
+.mega-search {
+  max-width: 860px !important;
+  height: 58px !important;
+}
+
+.mega-search select,
+.mega-search input {
+  height: 58px !important;
+}
+
+.stats {
+  margin-top: -34px !important;
+  margin-bottom: 30px !important;
+}
+
+.overview-card,
+.sila-home-dashboard {
+  margin-top: 20px !important;
+  margin-bottom: 20px !important;
+}
+
+@media (max-width: 760px) {
+  .hero {
+    min-height: 260px !important;
+    padding-top: 34px !important;
+    padding-bottom: 52px !important;
+  }
+
+  .stats {
+    margin-top: -22px !important;
+  }
+}
+/* SILA_FINAL_COMPACT_HERO_END */
