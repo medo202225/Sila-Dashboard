@@ -1809,8 +1809,6 @@ footer {
 /* SILA_FULL_BRAND_THEME_END */
 
 /* SILA_LAYOUT_FINAL_COMPOSITION_START */
-
-/* جعل أعلى الصفحة نظيفًا وغير متداخل */
 .minibar {
   height: 34px !important;
   min-height: 34px !important;
@@ -1828,16 +1826,19 @@ footer {
   padding-inline: max(24px, calc((100vw - 1420px) / 2)) !important;
 }
 
-/* منع أي محتوى من الدخول تحت الهيدر */
 .overview-card,
 .sila-home-dashboard {
   position: relative !important;
   z-index: 3 !important;
   margin-top: 24px !important;
   margin-bottom: 34px !important;
+  max-width: 1420px !important;
+  width: calc(100% - 48px) !important;
+  margin-left: auto !important;
+  margin-right: auto !important;
+  border-radius: 22px !important;
 }
 
-/* ترتيب المنطقة العليا بحيث تكون فخمة وليست مزدحمة */
 .hero {
   min-height: 430px !important;
   padding-top: 70px !important;
@@ -1857,23 +1858,11 @@ footer {
   margin-bottom: 24px !important;
 }
 
-/* كرت الإحصائيات العلوي */
-.sila-home-dashboard,
-.overview-card {
-  max-width: 1420px !important;
-  width: calc(100% - 48px) !important;
-  margin-left: auto !important;
-  margin-right: auto !important;
-  border-radius: 22px !important;
-}
-
-/* الكروت داخل overview */
 .overview-row {
   min-height: 104px !important;
   border-radius: 14px !important;
 }
 
-/* تحسين شريط البحث */
 .mega-search {
   max-width: 860px !important;
   height: 62px !important;
@@ -1891,7 +1880,6 @@ footer {
   width: 76px !important;
 }
 
-/* الشعار داخل الهيدر */
 .brand {
   min-width: 320px !important;
 }
@@ -1911,7 +1899,6 @@ footer {
   font-size: 31px !important;
 }
 
-/* النافبار */
 nav {
   margin-left: auto !important;
   gap: 12px !important;
@@ -1922,7 +1909,6 @@ nav {
   font-size: 16px !important;
 }
 
-/* لوحة الإحصائيات الكبيرة تحت البحث */
 .stats {
   max-width: 1420px !important;
   width: calc(100% - 48px) !important;
@@ -1933,7 +1919,6 @@ nav {
   overflow: hidden !important;
 }
 
-/* الأقسام السفلية */
 .home-grid,
 .page,
 .grid {
@@ -1947,7 +1932,6 @@ nav {
   margin-top: 26px !important;
 }
 
-/* إزالة أي بقايا شفافية مزعجة في أزرار overview */
 .overview-card .small-btn,
 .overview-card button,
 .sila-home-dashboard .small-btn,
@@ -1956,7 +1940,6 @@ nav {
   visibility: visible !important;
 }
 
-/* لا نريد الهيدر يغطي أي شيء */
 main,
 #app,
 .view,
@@ -1965,14 +1948,12 @@ main,
   z-index: 1 !important;
 }
 
-/* Scrollbar أهدأ وأجمل */
 ::-webkit-scrollbar-thumb {
   background: linear-gradient(180deg, #8cc63f, #d9a018) !important;
   border-radius: 999px !important;
   border: 2px solid #03110b !important;
 }
 
-/* تجاوب */
 @media (max-width: 1100px) {
   .topbar {
     height: auto !important;
