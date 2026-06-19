@@ -2295,20 +2295,17 @@ body {
 }
 /* SILA_HERO_HARD_COMPACT_END */
 
-/* SILA_STATS_OVERVIEW_SPACING_START */
+/* SILA_STATS_OVERVIEW_MATCH_FINAL_START */
 
 /*
-  حل جذري:
-  نجعل stats مثل Sila Network Overview:
-  - خلفية الحاوية شفافة
-  - gap حقيقي 18px
-  - كل كرت مستقل بحدوده
-  - ندعم حالتين:
-    1) الكروت direct children داخل .stats
-    2) الكروت داخل wrapper داخلي
+  Final stats spacing:
+  نفس فكرة Sila Network Overview:
+  - الحاوية بدون حدود
+  - الكروت منفصلة فعليًا
+  - gap واضح 18px
+  - دعم direct articles أو wrapper داخلي
 */
 
-/* الحاوية العامة */
 .stats {
   max-width: 1420px !important;
   width: calc(100% - 48px) !important;
@@ -2319,16 +2316,16 @@ body {
   box-shadow: none !important;
   overflow: visible !important;
   padding: 0 !important;
+  gap: 18px !important;
 }
 
-/* الحالة الأولى: الكروت مباشرة داخل .stats */
+/* الحالة A: الكروت مباشرة داخل .stats */
 .stats:has(> article:nth-child(7)) {
   display: grid !important;
   grid-template-columns: repeat(3, minmax(0, 1fr)) minmax(340px, 1.08fr) !important;
   grid-template-areas:
     "price tx gas activity"
     "market head block activity" !important;
-  gap: 18px !important;
 }
 
 .stats:has(> article:nth-child(7)) > article:nth-child(1) { grid-area: price !important; }
@@ -2339,11 +2336,10 @@ body {
 .stats:has(> article:nth-child(7)) > article:nth-child(6) { grid-area: block !important; }
 .stats:has(> article:nth-child(7)) > article:nth-child(7) { grid-area: activity !important; }
 
-/* الحالة الثانية: يوجد wrapper للكروت الستة + كرت Activity */
+/* الحالة B: wrapper داخلي للكروت الستة + activity بجانبه */
 .stats:not(:has(> article:nth-child(7))) {
   display: grid !important;
   grid-template-columns: minmax(0, 3fr) minmax(340px, 1.08fr) !important;
-  gap: 18px !important;
   align-items: stretch !important;
 }
 
@@ -2359,7 +2355,7 @@ body {
   overflow: visible !important;
 }
 
-/* أي كرت داخل stats، سواء مباشر أو داخل wrapper */
+/* كروت stats */
 .stats article,
 .stats > * > article {
   box-sizing: border-box !important;
@@ -2368,7 +2364,7 @@ body {
   height: auto !important;
   min-width: 0 !important;
   min-height: 112px !important;
-  border-radius: 20px !important;
+  border-radius: 18px !important;
   border: 1px solid rgba(140, 198, 63, 0.26) !important;
   background:
     radial-gradient(circle at 16% 0%, rgba(140,198,63,0.11), transparent 38%),
@@ -2379,22 +2375,29 @@ body {
   overflow: hidden !important;
 }
 
-/* كرت Activity */
+/* Activity */
 .stats:has(> article:nth-child(7)) > article:nth-child(7),
 .stats:not(:has(> article:nth-child(7))) > :last-child {
   min-height: 242px !important;
-  border-radius: 22px !important;
+  border-radius: 20px !important;
+  border: 1px solid rgba(140, 198, 63, 0.26) !important;
   background:
     radial-gradient(circle at 18% 12%, rgba(140,198,63,0.10), transparent 36%),
     radial-gradient(circle at 86% 74%, rgba(34,166,242,0.12), transparent 38%),
     linear-gradient(145deg, rgba(5, 29, 18, 0.94), rgba(1, 12, 8, 0.99)) !important;
-  border: 1px solid rgba(140, 198, 63, 0.26) !important;
   box-shadow:
     0 16px 34px rgba(0, 0, 0, 0.22),
     inset 0 1px 0 rgba(255,255,255,0.035) !important;
 }
 
-/* Hover موحد */
+/* إزالة أي إحساس بالالتصاق من قواعد قديمة */
+.stats article + article,
+.stats > * > article + article,
+.stats > * + * {
+  margin-left: 0 !important;
+}
+
+/* Hover خفيف */
 .stats article:hover,
 .stats > * > article:hover,
 .stats:not(:has(> article:nth-child(7))) > :last-child:hover {
@@ -2405,15 +2408,7 @@ body {
     0 0 0 1px rgba(217,160,24,0.12) !important;
 }
 
-/* منع أي حدود ملتصقة قديمة */
-.stats article + article,
-.stats > * + *,
-.stats > * > article + article {
-  margin-left: 0 !important;
-  border-left-width: 1px !important;
-}
-
-/* تجاوب */
+/* Responsive */
 @media (max-width: 1100px) {
   .stats:has(> article:nth-child(7)) {
     grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
@@ -2464,4 +2459,4 @@ body {
     min-height: 96px !important;
   }
 }
-/* SILA_STATS_OVERVIEW_SPACING_END */
+/* SILA_STATS_OVERVIEW_MATCH_FINAL_END */
