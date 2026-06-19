@@ -624,6 +624,14 @@ async function blocksPage(query) {
 const server = http.createServer(async (req, res) => {
   const url = new URL(req.url, "http://" + req.headers.host);
   try {
+    if (
+      url.pathname === "/blocks" ||
+      url.pathname === "/transactions" ||
+      url.pathname === "/runtime" ||
+      url.pathname === "/consensus"
+    ) {
+      url.pathname = "/";
+    }
     if (url.pathname === "/api/runtime/status") return sendJson(res, 200, await runtimePage());
     if (url.pathname === "/api/sila/runtime") return sendJson(res, 200, await runtimePage());
     if (url.pathname === "/api/sila/consensus") return sendJson(res, 200, await consensusPage());
