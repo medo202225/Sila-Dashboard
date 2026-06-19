@@ -630,8 +630,16 @@ const server = http.createServer(async (req, res) => {
       url.pathname === "/runtime" ||
       url.pathname === "/consensus"
     ) {
-      url.pathname = "/";
+      const fs = require("fs");
+      const path = require("path");
+      const indexHtml = fs.readFileSync(path.join(__dirname, "public", "index.html"));
+      res.writeHead(200, {
+        "content-type": "text/html; charset=utf-8",
+        "cache-control": "no-store",
+      });
+      return res.end(indexHtml);
     }
+
     if (url.pathname === "/api/runtime/status") return sendJson(res, 200, await runtimePage());
     if (url.pathname === "/api/sila/runtime") return sendJson(res, 200, await runtimePage());
     if (url.pathname === "/api/sila/consensus") return sendJson(res, 200, await consensusPage());
