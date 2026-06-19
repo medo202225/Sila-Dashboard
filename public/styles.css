@@ -1542,3 +1542,32 @@ html[data-theme="dim"] .topbar {
   }
 }
 /* SILA_VISUAL_POLISH_V1_END */
+
+/* SILA_OFFICIAL_EMBLEM_START */
+.brand { gap: 12px; }
+
+.brand-logo-img {
+  width: 48px;
+  height: 48px;
+  object-fit: contain;
+  border-radius: 14px;
+  background: #ffffff;
+  padding: 4px;
+  border: 1px solid rgba(148, 163, 184, 0.20);
+  box-shadow: 0 12px 30px rgba(25, 92, 50, 0.18);
+}
+
+.network-icon {
+  background-image: url("/brand/sila-coin-logo.png");
+  background-size: 76%;
+  background-repeat: no-repeat;
+  background-position: center;
+  color: transparent !important;
+}
+
+body.dark .brand-logo-img,
+body.dim .brand-logo-img {
+  background: rgba(255, 255, 255, 0.96);
+  border-color: rgba(255, 255, 255, 0.16);
+}
+/* SILA_OFFICIAL_EMBLEM_END */
