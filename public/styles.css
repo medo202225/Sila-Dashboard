@@ -1543,9 +1543,7 @@ html[data-theme="dim"] .topbar {
 }
 /* SILA_VISUAL_POLISH_V1_END */
 
-/* SILA_LOGO_RADICAL_FIX_START */
-
-/* Brand/header: one source of truth */
+/* SILA_LOGO_CIRCLE_FINAL_START */
 .topbar {
   height: 92px !important;
   min-height: 92px !important;
@@ -1559,15 +1557,30 @@ html[data-theme="dim"] .topbar {
   align-items: center !important;
   gap: 14px !important;
   flex: 0 0 auto !important;
-  min-width: 300px !important;
+  min-width: 305px !important;
 }
 
-/* Official Sila mark: isolated from legacy .logo rules */
+.sila-mark-circle {
+  width: 68px !important;
+  height: 68px !important;
+  flex: 0 0 68px !important;
+  display: grid !important;
+  place-items: center !important;
+  border-radius: 50% !important;
+  overflow: hidden !important;
+
+  /* دائرة فقط بدون خلفية صلبة */
+  background: transparent !important;
+  border: 2px solid rgba(255, 255, 255, 0.86) !important;
+  box-shadow:
+    0 8px 22px rgba(0, 0, 0, 0.22),
+    0 0 0 1px rgba(37, 211, 102, 0.22) !important;
+}
+
 .sila-official-mark {
+  width: 86% !important;
+  height: 86% !important;
   display: block !important;
-  width: 72px !important;
-  height: 72px !important;
-  flex: 0 0 72px !important;
   object-fit: contain !important;
   object-position: center !important;
   background: transparent !important;
@@ -1576,8 +1589,6 @@ html[data-theme="dim"] .topbar {
   padding: 0 !important;
   margin: 0 !important;
   box-shadow: none !important;
-  max-width: none !important;
-  max-height: none !important;
 }
 
 .brand strong {
@@ -1588,7 +1599,7 @@ html[data-theme="dim"] .topbar {
   white-space: nowrap !important;
 }
 
-/* Remove the extra S/logo button from the right top controls */
+/* إخفاء مربع S الزائد يمينًا */
 .minibar .network-icon,
 .topbar .network-icon,
 .mini-actions .network-icon,
@@ -1597,7 +1608,6 @@ html[data-theme="dim"] .topbar {
   display: none !important;
 }
 
-/* Navigation without the grey scrollbar */
 nav {
   display: flex !important;
   align-items: center !important;
@@ -1616,7 +1626,6 @@ nav::-webkit-scrollbar {
   white-space: nowrap !important;
 }
 
-/* Keep mobile usable */
 @media (max-width: 1100px) {
   .topbar {
     height: auto !important;
@@ -1637,14 +1646,19 @@ nav::-webkit-scrollbar {
     min-width: auto !important;
   }
 
-  .sila-official-mark {
+  .sila-mark-circle {
     width: 58px !important;
     height: 58px !important;
     flex-basis: 58px !important;
+  }
+
+  .sila-official-mark {
+    width: 86% !important;
+    height: 86% !important;
   }
 
   .brand strong {
     font-size: 25px !important;
   }
 }
-/* SILA_LOGO_RADICAL_FIX_END */
+/* SILA_LOGO_CIRCLE_FINAL_END */
