@@ -2549,6 +2549,19 @@ window.silaRenderRuntimePage = silaRenderRuntimePage;
       + "</div>";
   }
 
+  function detailHtmlRow(label, htmlValue, mono) {
+    return ""
+      + "<div class=\"sila-inline-block-detail-row\">"
+      + "  <span>" + esc(label) + "</span>"
+      + "  <strong" + (mono ? " class=\"mono\"" : "") + ">" + htmlValue + "</strong>"
+      + "</div>";
+  }
+
+  function addressLink(value) {
+    if (!value || value === "—") return "—";
+    return "<button type=\"button\" class=\"linklike mono\" data-address=\"" + esc(value) + "\">" + esc(value) + "</button>";
+  }
+
   function renderDetail(block) {
     const card = document.getElementById("silaBlockDetail");
     const body = document.getElementById("silaBlockDetailBody");
@@ -2559,7 +2572,7 @@ window.silaRenderRuntimePage = silaRenderRuntimePage;
       + detailRow("Block", "#" + number, false)
       + detailRow("Hash", block.hash || "—", true)
       + detailRow("Parent Hash", block.parentHash || "—", true)
-      + detailRow("Fee Recipient", block.miner || "—", true)
+      + detailHtmlRow("Fee Recipient", addressLink(block.miner || "—"), true)
       + detailRow("Timestamp", fmtTime(block.timestamp), false)
       + detailRow("Transactions", block.transactionCount || 0, false)
       + detailRow("Gas Used", dec(block.gasUsed), false)
@@ -2852,7 +2865,7 @@ window.silaRenderRuntimePage = silaRenderRuntimePage;
       + detailRow("Block Height", "#" + number, false, false)
       + detailRow("Timestamp", block.timestamp ? dateText(block.timestamp) + " / " + age(block.timestamp) : "—", false, false)
       + detailRow("Transactions", txCount, false, false)
-      + detailRow("Fee Recipient", feeRecipient, true, true)
+      + detailRow("Fee Recipient", silaTxLinkAddress(feeRecipient), false, false)
       + detailRow("Block Reward", block.reward || "0 SILA", false, false)
       + detailRow("Gas Used", gasUsed, false, false)
       + detailRow("Gas Limit", gasLimit, false, false)
