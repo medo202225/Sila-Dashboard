@@ -2624,3 +2624,289 @@ window.silaRenderRuntimePage = silaRenderRuntimePage;
   });
 }());
 // SILA_CLIENT_ROUTER_END
+
+// SILA_REAL_BLOCKS_EXPLORER_START
+(function () {
+  "use strict";
+
+  const LIMIT = 25;
+
+  function esc(value) {
+    return String(value === null || value === undefined ? "—" : value)
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;")
+      .replace(/'/g, "&#039;");
+  }
+
+  function shortHash(value) {
+    const s = String(value || "");
+    if (!s || s.length <= 18) return s || "—";
+    return s.slice(0, 10) + "..." + s.slice(-8);
+  }
+
+  function dec(value) {
+    if (value === null || value === undefined || value === "") return "—";
+    if (typeof value === "number") return String(value);
+    const s = String(value);
+    if (s.startsWith("0x")) {
+      try { return BigInt(s).toString(10); } catch (_) { return s; }
+    }
+    return s;
+  }
+
+  function fmtTime(ts) {
+    const n = Number(ts || 0);
+    if (!Number.isFinite(n) || n <= 0) return "—";
+    return new Date(n * 1000).toLocaleString();
+  }
+
+  function age(ts) {
+    const n = Number(ts || 0);
+    if (!Number.isFinite(n) || n <= 0) return "—";
+    const seconds = Math.max(0, Math.floor(Date.now() / 1000 - n));
+    if (seconds < 60) return seconds + "s ago";
+    const minutes = Math.floor(seconds / 60);
+    if (minutes < 60) return minutes + "m ago";
+    const hours = Math.floor(minutes / 60);
+    if (hours < 24) return hours + "h ago";
+    return Math.floor(hours / 24) + "d ago";
+  }
+
+  function gasPercent(block) {
+    const used = Number(dec(block.gasUsed));
+    const limit = Number(dec(block.gasLimit));
+    if (!Number.isFinite(used) || !Number.isFinite(limit) || limit <= 0) return 0;
+    return Math.max(0, Math.min(100, (used / limit) * 100));
+  }
+
+  async function readJson(url) {
+    const response = await fetch(url, { cache: "no-store" });
+    if (!response.ok) throw new Error("HTTP " + response.status + " for " + url);
+    const data = await response.json();
+    if (data && data.ok === false) throw new Error(data.error || "Sila API returned ok=false");
+    return data;
+  }
+
+  function ensureRouteView() {
+    document.querySelectorAll(".view").forEach((view) => {
+      view.classList.add("hidden");
+      view.style.display = "none";
+    });
+
+    let host = document.getElementById("silaRouteView");
+    if (!host) {
+      host = document.createElement("section");
+      host.id = "silaRouteView";
+      host.className = "view page sila-route-view";
+      const main = document.querySelector("main") || document.body;
+      main.appendChild(host);
+    }
+
+    host.classList.remove("hidden");
+    host.style.display = "";
+    return host;
+  }
+
+  function blocksLayout() {
+    return ""
+      + "<section class=\"sila-blocks-page\">"
+      + "  <section class=\"sila-blocks-hero\">"
+      + "    <div>"
+      + "      <small>Blockchain</small>"
+      + "      <h1>Sila Blocks</h1>"
+      + "      <p>Live blocks validated by the local Sila execution and consensus stack.</p>"
+      + "    </div>"
+      + "    <div class=\"sila-blocks-actions\">"
+      + "      <button type=\"button\" id=\"silaBlocksRefresh\">Refresh</button>"
+      + "      <button type=\"button\" id=\"silaBlocksOlder\">Load older</button>"
+      + "    </div>"
+      + "  </section>"
+      + "  <section class=\"sila-blocks-summary\" id=\"silaBlocksSummary\">"
+      + "    <article><span>Latest Block</span><strong>—</strong><small>Waiting for API</small></article>"
+      + "    <article><span>Blocks Loaded</span><strong>—</strong><small>Current page</small></article>"
+      + "    <article><span>Chain</span><strong>Sila</strong><small>Local devnet</small></article>"
+      + "    <article><span>Status</span><strong>Loading</strong><small id=\"silaBlocksStatus\">Connecting</small></article>"
+      + "  </section>"
+      + "  <section class=\"sila-blocks-table-card\">"
+      + "    <div class=\"sila-blocks-table-head\">"
+      + "      <div><h2>Latest Blocks</h2><small id=\"silaBlocksMeta\">Loading real Sila blocks...</small></div>"
+      + "      <code>/api/sila/blocks</code>"
+      + "    </div>"
+      + "    <div class=\"table-wrap sila-blocks-table-wrap\">"
+      + "      <table class=\"sila-blocks-table\">"
+      + "        <thead>"
+      + "          <tr>"
+      + "            <th>Block</th>"
+      + "            <th>Age</th>"
+      + "            <th>Txns</th>"
+      + "            <th>Fee Recipient</th>"
+      + "            <th>Gas Used</th>"
+      + "            <th>Base Fee</th>"
+      + "            <th>Hash</th>"
+      + "          </tr>"
+      + "        </thead>"
+      + "        <tbody id=\"silaBlocksRows\"><tr><td colspan=\"7\">Loading...</td></tr></tbody>"
+      + "      </table>"
+      + "    </div>"
+      + "  </section>"
+      + "  <section class=\"sila-block-detail-card hidden\" id=\"silaBlockDetail\">"
+      + "    <h2>Block Details</h2>"
+      + "    <div id=\"silaBlockDetailBody\" class=\"sila-detail-grid\"></div>"
+      + "  </section>"
+      + "</section>";
+  }
+
+  function rowHtml(block) {
+    const number = dec(block.number || block.numberHex);
+    const hash = block.hash || "";
+    const pct = gasPercent(block).toFixed(2);
+    const gasUsed = dec(block.gasUsed);
+    const gasLimit = dec(block.gasLimit);
+    const baseFee = dec(block.baseFeePerGas);
+
+    return ""
+      + "<tr data-sila-block-number=\"" + esc(number) + "\">"
+      + "  <td><button type=\"button\" class=\"sila-block-link\" data-sila-block-open=\"" + esc(number) + "\">#" + esc(number) + "</button></td>"
+      + "  <td><span>" + esc(age(block.timestamp)) + "</span><small>" + esc(fmtTime(block.timestamp)) + "</small></td>"
+      + "  <td><strong>" + esc(block.transactionCount || 0) + "</strong></td>"
+      + "  <td><code title=\"" + esc(block.miner || "") + "\">" + esc(block.minerShort || shortHash(block.miner)) + "</code></td>"
+      + "  <td><div class=\"sila-gas-cell\"><span>" + esc(gasUsed) + " / " + esc(gasLimit) + "</span><b><i style=\"width:" + esc(pct) + "%\"></i></b></div></td>"
+      + "  <td>" + esc(baseFee) + " wei</td>"
+      + "  <td><code title=\"" + esc(hash) + "\">" + esc(block.hashShort || shortHash(hash)) + "</code></td>"
+      + "</tr>";
+  }
+
+  function detailRow(label, value, mono) {
+    return ""
+      + "<div class=\"sila-detail-row\">"
+      + "  <span>" + esc(label) + "</span>"
+      + "  <strong" + (mono ? " class=\"mono\"" : "") + ">" + esc(value) + "</strong>"
+      + "</div>";
+  }
+
+  function renderDetail(block) {
+    const card = document.getElementById("silaBlockDetail");
+    const body = document.getElementById("silaBlockDetailBody");
+    if (!card || !body) return;
+
+    const number = dec(block.number || block.numberHex);
+    body.innerHTML = ""
+      + detailRow("Block", "#" + number, false)
+      + detailRow("Hash", block.hash || "—", true)
+      + detailRow("Parent Hash", block.parentHash || "—", true)
+      + detailRow("Fee Recipient", block.miner || "—", true)
+      + detailRow("Timestamp", fmtTime(block.timestamp), false)
+      + detailRow("Transactions", block.transactionCount || 0, false)
+      + detailRow("Gas Used", dec(block.gasUsed), false)
+      + detailRow("Gas Limit", dec(block.gasLimit), false)
+      + detailRow("Base Fee", dec(block.baseFeePerGas) + " wei", false)
+      + detailRow("Reward", block.reward || "0 SILA", false);
+
+    card.classList.remove("hidden");
+    card.scrollIntoView({ behavior: "smooth", block: "nearest" });
+  }
+
+  async function loadBlocks(options) {
+    options = options || {};
+    const append = !!options.append;
+    const start = options.start || "";
+
+    const status = document.getElementById("silaBlocksStatus");
+    const meta = document.getElementById("silaBlocksMeta");
+    const rows = document.getElementById("silaBlocksRows");
+    const summary = document.getElementById("silaBlocksSummary");
+
+    if (status) status.textContent = "Loading real Sila blocks...";
+    if (meta) meta.textContent = "Fetching from /api/sila/blocks";
+
+    let url = "/api/sila/blocks?limit=" + LIMIT;
+    if (start) url += "&startBlock=" + encodeURIComponent(start);
+
+    try {
+      const data = await readJson(url);
+      const blocks = Array.isArray(data.blocks) ? data.blocks : [];
+
+      if (!append) window.__silaBlocksExplorerBlocks = [];
+      const known = new Set((window.__silaBlocksExplorerBlocks || []).map((b) => String(b.number || b.numberHex)));
+      const fresh = blocks.filter((b) => !known.has(String(b.number || b.numberHex)));
+
+      window.__silaBlocksExplorerBlocks = (window.__silaBlocksExplorerBlocks || []).concat(fresh);
+      window.__silaBlocksExplorerNextStart = data.nextStart || "";
+
+      const all = window.__silaBlocksExplorerBlocks;
+      rows.innerHTML = all.length
+        ? all.map(rowHtml).join("")
+        : "<tr><td colspan=\"7\">No blocks returned by the Sila API.</td></tr>";
+
+      const latest = all[0] || {};
+      if (summary) {
+        summary.innerHTML = ""
+          + "<article><span>Latest Block</span><strong>#" + esc(dec(latest.number || latest.numberHex)) + "</strong><small>" + esc(shortHash(latest.hash)) + "</small></article>"
+          + "<article><span>Blocks Loaded</span><strong>" + esc(all.length) + "</strong><small>Current table</small></article>"
+          + "<article><span>Chain</span><strong>" + esc(data.chain || "Sila") + "</strong><small>Execution API live</small></article>"
+          + "<article><span>Status</span><strong>Online</strong><small>Real blocks endpoint OK</small></article>";
+      }
+
+      if (status) status.textContent = "Online";
+      if (meta) meta.textContent = "Loaded " + all.length + " blocks. Latest API time: " + esc(data.generatedAt || "—");
+    } catch (err) {
+      rows.innerHTML = "<tr><td colspan=\"7\">Sila blocks API error: " + esc(err.message || err) + "</td></tr>";
+      if (status) status.textContent = "API error";
+      if (meta) meta.textContent = "Failed to load real blocks.";
+    }
+  }
+
+  async function openBlock(number) {
+    const card = document.getElementById("silaBlockDetail");
+    const body = document.getElementById("silaBlockDetailBody");
+    if (card && body) {
+      card.classList.remove("hidden");
+      body.innerHTML = "<div class=\"sila-detail-row\"><span>Loading</span><strong>Block #" + esc(number) + "</strong></div>";
+    }
+
+    try {
+      const data = await readJson("/api/sila/block/" + encodeURIComponent(number));
+      renderDetail(data.block || data);
+    } catch (err) {
+      if (body) {
+        body.innerHTML = "<div class=\"sila-detail-row\"><span>Error</span><strong>" + esc(err.message || err) + "</strong></div>";
+      }
+    }
+  }
+
+  window.silaRenderBlocksPage = async function () {
+    const host = ensureRouteView();
+    host.innerHTML = blocksLayout();
+    await loadBlocks({ append: false });
+  };
+
+  if (!window.__silaRealBlocksExplorerBound) {
+    window.__silaRealBlocksExplorerBound = true;
+
+    document.addEventListener("click", function (event) {
+      const refresh = event.target.closest("#silaBlocksRefresh");
+      if (refresh) {
+        event.preventDefault();
+        window.silaRenderBlocksPage();
+        return;
+      }
+
+      const older = event.target.closest("#silaBlocksOlder");
+      if (older) {
+        event.preventDefault();
+        const nextStart = window.__silaBlocksExplorerNextStart || "";
+        loadBlocks({ append: true, start: nextStart });
+        return;
+      }
+
+      const open = event.target.closest("[data-sila-block-open]");
+      if (open) {
+        event.preventDefault();
+        openBlock(open.getAttribute("data-sila-block-open"));
+      }
+    });
+  }
+})();
+// SILA_REAL_BLOCKS_EXPLORER_END
