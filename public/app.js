@@ -2545,7 +2545,8 @@ window.silaRenderRuntimePage = silaRenderRuntimePage;
     }
 
     host.classList.remove("hidden");
-    host.style.display = "";
+    host.classList.add("active-view");
+    host.style.display = "block";
     return host;
   }
 
