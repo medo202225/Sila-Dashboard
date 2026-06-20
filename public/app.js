@@ -2594,7 +2594,7 @@ window.silaRenderRuntimePage = silaRenderRuntimePage;
       + "  </section>"
       + "  <section class=\"sila-block-detail-card hidden\" id=\"silaBlockDetail\">"
       + "    <h2>Block Details</h2>"
-      + "    <div id=\"silaBlockDetailBody\" class=\"sila-detail-grid\"></div>"
+      + "    <div id=\"silaBlockDetailBody\" class=\"sila-inline-block-detail-grid\"></div>"
       + "  </section>"
       + "</section>";
   }
@@ -2621,7 +2621,7 @@ window.silaRenderRuntimePage = silaRenderRuntimePage;
 
   function detailRow(label, value, mono) {
     return ""
-      + "<div class=\"sila-detail-row\">"
+      + "<div class=\"sila-inline-block-detail-row\">"
       + "  <span>" + esc(label) + "</span>"
       + "  <strong" + (mono ? " class=\"mono\"" : "") + ">" + esc(value) + "</strong>"
       + "</div>";
@@ -2704,7 +2704,7 @@ window.silaRenderRuntimePage = silaRenderRuntimePage;
     const body = document.getElementById("silaBlockDetailBody");
     if (card && body) {
       card.classList.remove("hidden");
-      body.innerHTML = "<div class=\"sila-detail-row\"><span>Loading</span><strong>Block #" + esc(number) + "</strong></div>";
+      body.innerHTML = "<div class=\"sila-inline-block-detail-row\"><span>Loading</span><strong>Block #" + esc(number) + "</strong></div>";
     }
 
     try {
@@ -2712,7 +2712,7 @@ window.silaRenderRuntimePage = silaRenderRuntimePage;
       renderDetail(data.block || data);
     } catch (err) {
       if (body) {
-        body.innerHTML = "<div class=\"sila-detail-row\"><span>Error</span><strong>" + esc(err.message || err) + "</strong></div>";
+        body.innerHTML = "<div class=\"sila-inline-block-detail-row\"><span>Error</span><strong>" + esc(err.message || err) + "</strong></div>";
       }
     }
   }

@@ -2899,3 +2899,65 @@ body {
   }
 }
 /* SILA_OFFICIAL_BLOCK_DETAILS_END */
+
+/* SILA_INLINE_BLOCK_DETAILS_FIX_START */
+
+/*
+  Fix /blocks inline block details.
+  لا نستخدم .sila-detail-grid هنا لأنها مستخدمة قديمًا وتكسر الهاشات الطويلة.
+*/
+.sila-block-detail-card {
+  overflow: visible !important;
+}
+
+.sila-inline-block-detail-grid {
+  display: grid !important;
+  grid-template-columns: 1fr !important;
+  gap: 12px !important;
+  border: 0 !important;
+  overflow: visible !important;
+}
+
+.sila-inline-block-detail-row {
+  display: grid !important;
+  grid-template-columns: 190px minmax(0, 1fr) !important;
+  gap: 16px !important;
+  align-items: start !important;
+  min-height: auto !important;
+  border: 1px solid rgba(140,198,63,.18) !important;
+  border-radius: 14px !important;
+  padding: 14px 16px !important;
+  background: rgba(3, 34, 20, .70) !important;
+}
+
+.sila-inline-block-detail-row span {
+  color: #b9dac6 !important;
+  font-weight: 900 !important;
+  white-space: nowrap !important;
+}
+
+.sila-inline-block-detail-row strong {
+  color: #fff !important;
+  min-width: 0 !important;
+  max-width: 100% !important;
+  overflow-wrap: anywhere !important;
+  word-break: break-word !important;
+  line-height: 1.55 !important;
+}
+
+.sila-inline-block-detail-row strong.mono {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace !important;
+  font-size: 13px !important;
+}
+
+@media (max-width: 720px) {
+  .sila-inline-block-detail-row {
+    grid-template-columns: 1fr !important;
+    gap: 6px !important;
+  }
+
+  .sila-inline-block-detail-row span {
+    white-space: normal !important;
+  }
+}
+/* SILA_INLINE_BLOCK_DETAILS_FIX_END */
