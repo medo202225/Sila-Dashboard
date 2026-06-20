@@ -2295,19 +2295,16 @@ body {
 }
 /* SILA_HERO_HARD_COMPACT_END */
 
-/* SILA_STATS_TRUE_WRAPPER_FIX_START */
+/* SILA_HOME_OVERVIEW_ETHERSCAN_GRID_START */
 
 /*
-  السبب الحقيقي:
-  stats يحتوي wrapper داخلي، لذلك gap لا يظهر مثل Overview.
-  الحل:
-  - .stats تصبح Grid رئيسي.
-  - أي wrapper داخلي يحتوي article يصبح display: contents.
-  - الكروت نفسها تدخل Grid مباشرة.
-  - Activity يوضع في العمود الرابع ويمتد صفين.
+  Real home dashboard cards:
+  هذا هو القسم الصحيح في الصفحة الرئيسية:
+  .overview-card > .overview-col > .overview-row
+  وليس .stats.
 */
 
-.stats {
+.overview-card {
   max-width: 1420px !important;
   width: calc(100% - 48px) !important;
   margin-left: auto !important;
@@ -2316,8 +2313,10 @@ body {
   display: grid !important;
   grid-template-columns: repeat(3, minmax(0, 1fr)) minmax(340px, 1.08fr) !important;
   grid-template-rows: repeat(2, minmax(112px, auto)) !important;
+  grid-template-areas:
+    "price tx gas activity"
+    "market head block activity" !important;
   gap: 18px !important;
-  grid-auto-flow: row dense !important;
 
   background: transparent !important;
   border: 0 !important;
@@ -2326,26 +2325,27 @@ body {
   padding: 0 !important;
 }
 
-/* تفكيك wrapper الكروت حتى تظهر الفواصل الحقيقية */
-.stats > *:has(> article) {
+/* نفك أعمدة overview-col حتى تصبح الكروت نفسها داخل Grid */
+.overview-card > .overview-col {
   display: contents !important;
-  background: transparent !important;
-  border: 0 !important;
-  box-shadow: none !important;
-  padding: 0 !important;
-  margin: 0 !important;
 }
 
-/* كروت الإحصائيات الستة، سواء مباشرة أو داخل wrapper */
-.stats > article,
-.stats > *:has(> article) > article {
+/* توزيع الكروت الستة */
+.overview-card > .overview-col:nth-of-type(1) > .overview-row:nth-of-type(1) { grid-area: price !important; }
+.overview-card > .overview-col:nth-of-type(1) > .overview-row:nth-of-type(2) { grid-area: market !important; }
+
+.overview-card > .overview-col:nth-of-type(2) > .overview-row:nth-of-type(1) { grid-area: tx !important; }
+.overview-card > .overview-col:nth-of-type(2) > .overview-row:nth-of-type(2) { grid-area: head !important; }
+
+.overview-card > .overview-col:nth-of-type(3) > .overview-row:nth-of-type(1) { grid-area: gas !important; }
+.overview-card > .overview-col:nth-of-type(3) > .overview-row:nth-of-type(2) { grid-area: block !important; }
+
+/* الكرت نفسه مثل Sila Network Overview */
+.overview-card .overview-row {
   box-sizing: border-box !important;
   margin: 0 !important;
-  width: auto !important;
-  height: auto !important;
   min-width: 0 !important;
   min-height: 112px !important;
-
   border-radius: 18px !important;
   border: 1px solid rgba(140, 198, 63, 0.26) !important;
   background:
@@ -2357,11 +2357,9 @@ body {
   overflow: hidden !important;
 }
 
-/* Activity: العنصر الوحيد المباشر الذي لا يحتوي article */
-.stats > *:not(:has(> article)):last-child {
-  grid-column: 4 !important;
-  grid-row: 1 / span 2 !important;
-
+/* Sila Activity مستقل ويمتد صفين */
+.overview-card > .overview-chart {
+  grid-area: activity !important;
   min-height: 242px !important;
   border-radius: 20px !important;
   border: 1px solid rgba(140, 198, 63, 0.26) !important;
@@ -2375,25 +2373,9 @@ body {
   overflow: hidden !important;
 }
 
-/* لو كان Activity نفسه article مباشر رقم 7 */
-.stats > article:nth-of-type(7) {
-  grid-column: 4 !important;
-  grid-row: 1 / span 2 !important;
-  min-height: 242px !important;
-  border-radius: 20px !important;
-}
-
-/* منع أي قواعد قديمة من لصق الحدود */
-.stats article + article,
-.stats > * + *,
-.stats > *:has(> article) > article + article {
-  margin-left: 0 !important;
-}
-
-/* Hover */
-.stats > article:hover,
-.stats > *:has(> article) > article:hover,
-.stats > *:not(:has(> article)):last-child:hover {
+/* Hover موحد */
+.overview-card .overview-row:hover,
+.overview-card > .overview-chart:hover {
   transform: translateY(-2px) !important;
   border-color: rgba(241, 200, 75, 0.40) !important;
   box-shadow:
@@ -2401,37 +2383,49 @@ body {
     0 0 0 1px rgba(217,160,24,0.12) !important;
 }
 
+/* لا نلمس .stats لأنها تخص صفحات أخرى مثل explorer/wallet/validators */
+.stats {
+  gap: 18px;
+}
+
 /* Responsive */
 @media (max-width: 1100px) {
-  .stats {
+  .overview-card {
     grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
-    grid-template-rows: auto !important;
+    grid-template-areas:
+      "price tx"
+      "gas market"
+      "head block"
+      "activity activity" !important;
     gap: 16px !important;
   }
 
-  .stats > *:not(:has(> article)):last-child,
-  .stats > article:nth-of-type(7) {
-    grid-column: 1 / -1 !important;
-    grid-row: auto !important;
+  .overview-card > .overview-chart {
     min-height: 170px !important;
   }
 }
 
 @media (max-width: 680px) {
-  .stats {
+  .overview-card {
     width: calc(100% - 28px) !important;
     grid-template-columns: 1fr !important;
+    grid-template-areas:
+      "price"
+      "tx"
+      "gas"
+      "market"
+      "head"
+      "block"
+      "activity" !important;
     gap: 14px !important;
   }
 
-  .stats > article,
-  .stats > *:has(> article) > article {
+  .overview-card .overview-row {
     min-height: 96px !important;
   }
 
-  .stats > *:not(:has(> article)):last-child,
-  .stats > article:nth-of-type(7) {
+  .overview-card > .overview-chart {
     min-height: 140px !important;
   }
 }
-/* SILA_STATS_TRUE_WRAPPER_FIX_END */
+/* SILA_HOME_OVERVIEW_ETHERSCAN_GRID_END */
