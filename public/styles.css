@@ -3094,3 +3094,51 @@ html[dir="rtl"] .nav-dropdown {
   background: rgba(140, 198, 63, 0.08) !important;
 }
 /* SILA_CLICKABLE_CARDS_END */
+
+/* SILA_SEARCH_RESULT_APPEARANCE_FIX_START */
+.sila-detail-card .sila-detail-grid {
+  display: grid !important;
+  grid-template-columns: 1fr !important;
+  gap: 12px !important;
+}
+
+.sila-detail-card .sila-detail-row {
+  display: grid !important;
+  grid-template-columns: 170px minmax(0, 1fr) !important;
+  align-items: start !important;
+  gap: 14px !important;
+  width: 100% !important;
+  box-sizing: border-box !important;
+}
+
+.sila-detail-card .sila-detail-row > span {
+  min-width: 0 !important;
+  white-space: nowrap !important;
+}
+
+.sila-detail-card .sila-detail-row > strong {
+  min-width: 0 !important;
+  max-width: 100% !important;
+  overflow-wrap: anywhere !important;
+  word-break: normal !important;
+  white-space: normal !important;
+}
+
+.sila-detail-card .sila-detail-row > strong.mono,
+.sila-detail-card .sila-detail-row .mono {
+  display: block !important;
+  width: 100% !important;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace !important;
+  line-height: 1.55 !important;
+}
+
+@media (max-width: 700px) {
+  .sila-detail-card .sila-detail-row {
+    grid-template-columns: 1fr !important;
+  }
+
+  .sila-detail-card .sila-detail-row > span {
+    white-space: normal !important;
+  }
+}
+/* SILA_SEARCH_RESULT_APPEARANCE_FIX_END */
