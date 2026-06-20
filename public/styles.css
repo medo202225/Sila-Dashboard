@@ -868,34 +868,6 @@ html[dir="rtl"] .sila-copy-btn {
 }
 /* SILA_ADDRESS_DETAILS_PAGE_END */
 
-/* SILA_TRANSACTIONS_PAGE_START */
-.sila-empty-state {
-  display: grid;
-  place-items: center;
-  min-height: 220px;
-  border: 1px dashed var(--line);
-  border-radius: 16px;
-  background: rgba(100,116,139,.05);
-  text-align: center;
-  padding: 28px;
-}
-
-.sila-empty-state strong {
-  display: block;
-  margin-bottom: 8px;
-  font-size: 20px;
-}
-
-.sila-empty-state span {
-  color: var(--muted);
-}
-
-.sila-tx-table a,
-.sila-tx-table button {
-  color: var(--blue);
-  font-weight: 800;
-}
-/* SILA_TRANSACTIONS_PAGE_END */
 
 /* SILA_HOME_DASHBOARD_START */
 .sila-home-dashboard {
@@ -2961,3 +2933,95 @@ body {
   }
 }
 /* SILA_INLINE_BLOCK_DETAILS_FIX_END */
+
+/* SILA_TRANSACTIONS_PAGE_START */
+.sila-transactions-page {
+  width: calc(100% - 48px);
+  max-width: 1420px;
+  margin: 30px auto 56px;
+  display: grid;
+  gap: 20px;
+}
+
+.sila-transactions-empty-card {
+  min-height: 260px;
+}
+
+.sila-empty-state {
+  display: grid;
+  place-items: center;
+  min-height: 220px;
+  border: 1px dashed rgba(140, 198, 63, 0.24);
+  border-radius: 18px;
+  background:
+    radial-gradient(circle at 50% 0%, rgba(140,198,63,0.10), transparent 38%),
+    rgba(3, 34, 20, .48);
+  text-align: center;
+  padding: 28px;
+}
+
+.sila-empty-state strong {
+  display: block;
+  color: #fff;
+  font-size: 22px;
+  margin-bottom: 8px;
+}
+
+.sila-empty-state span {
+  color: #b9dac6;
+}
+
+.sila-transactions-table {
+  width: 100%;
+  min-width: 980px;
+  border-collapse: separate;
+  border-spacing: 0 10px;
+}
+
+.sila-transactions-table th {
+  color: #b9dac6;
+  text-align: left;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: .07em;
+  padding: 0 14px 6px;
+}
+
+.sila-transactions-table td {
+  background: rgba(3, 34, 20, .72);
+  border-top: 1px solid rgba(140,198,63,.16);
+  border-bottom: 1px solid rgba(140,198,63,.16);
+  padding: 14px;
+  color: #eaf7ef;
+  vertical-align: middle;
+}
+
+.sila-transactions-table td:first-child {
+  border-left: 1px solid rgba(140,198,63,.16);
+  border-top-left-radius: 16px;
+  border-bottom-left-radius: 16px;
+}
+
+.sila-transactions-table td:last-child {
+  border-right: 1px solid rgba(140,198,63,.16);
+  border-top-right-radius: 16px;
+  border-bottom-right-radius: 16px;
+}
+
+.sila-transactions-table .mono,
+.sila-transactions-table code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+}
+
+.sila-transactions-table a,
+.sila-transactions-table button {
+  color: #1ba7f2;
+  font-weight: 900;
+}
+
+@media (max-width: 680px) {
+  .sila-transactions-page {
+    width: calc(100% - 28px);
+  }
+}
+/* SILA_TRANSACTIONS_PAGE_END */

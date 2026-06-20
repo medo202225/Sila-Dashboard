@@ -1145,118 +1145,6 @@ silaSearchBindRouter();
 window.silaSearchRoute = silaSearchRoute;
 // SILA_SEARCH_ROUTER_END
 
-// SILA_TRANSACTIONS_PAGE_START
-function silaTransactionsEscape(value) {
-  return String(value === null || value === undefined ? "—" : value)
-    .replaceAll("&", "&amp;")
-    .replaceAll("<", "&lt;")
-    .replaceAll(">", "&gt;")
-    .replaceAll("\"", "&quot;")
-    .replaceAll("'", "&#39;");
-}
-
-function silaTransactionsEnsureView() {
-  let view = document.getElementById("featureView");
-  if (view) return view;
-
-  view = document.createElement("section");
-  view.id = "featureView";
-  view.className = "view page";
-  document.querySelector("main").appendChild(view);
-  return view;
-}
-
-function silaTransactionsShowView() {
-  document.querySelectorAll(".view").forEach((node) => node.classList.remove("active-view"));
-  const view = silaTransactionsEnsureView();
-  view.classList.add("active-view");
-  return view;
-}
-
-function silaTransactionsRows(transactions) {
-  if (!transactions || !transactions.length) {
-    return ""
-      + "<div class=\"sila-empty-state\">"
-      + "  <div>"
-      + "    <strong>No Sila transactions in recent blocks yet.</strong>"
-      + "    <span>SilaScan is connected and will display transactions automatically when they appear.</span>"
-      + "  </div>"
-      + "</div>";
-  }
-
-  const rows = transactions.map((tx) => ""
-    + "<tr>"
-    + "  <td><button type=\"button\" class=\"linklike\" data-tx=\"" + silaTransactionsEscape(tx.hash) + "\">" + silaTransactionsEscape(tx.hashShort || tx.hash) + "</button></td>"
-    + "  <td><button type=\"button\" class=\"linklike\" data-sila-block-detail=\"" + silaTransactionsEscape(tx.blockNumber) + "\">#" + silaTransactionsEscape(tx.blockNumber) + "</button></td>"
-    + "  <td><button type=\"button\" class=\"linklike\" data-address=\"" + silaTransactionsEscape(tx.from) + "\">" + silaTransactionsEscape(tx.fromShort || tx.from) + "</button></td>"
-    + "  <td>" + (tx.to ? "<button type=\"button\" class=\"linklike\" data-address=\"" + silaTransactionsEscape(tx.to) + "\">" + silaTransactionsEscape(tx.toShort || tx.to) + "</button>" : "Contract Creation") + "</td>"
-    + "  <td>" + silaTransactionsEscape(tx.valueWei || "0") + " wei</td>"
-    + "</tr>"
-  ).join("");
-
-  return ""
-    + "<div class=\"table-wrap\">"
-    + "  <table class=\"sila-tx-table\">"
-    + "    <thead><tr><th>Txn Hash</th><th>Block</th><th>From</th><th>To</th><th>Value</th></tr></thead>"
-    + "    <tbody>" + rows + "</tbody>"
-    + "  </table>"
-    + "</div>";
-}
-
-async function silaRenderTransactionsPage() {
-  const view = silaTransactionsShowView();
-
-  view.innerHTML = ""
-    + "<section class=\"sila-detail-hero\">"
-    + "  <div>"
-    + "    <small>Sila Transactions</small>"
-    + "    <h1>Transactions</h1>"
-    + "    <p class=\"muted\">Loading recent Sila transactions...</p>"
-    + "  </div>"
-    + "</section>";
-
-  let data;
-
-  try {
-    data = await fetch("/api/sila/transactions?limit=25&blocks=500", { cache: "no-store" }).then((res) => res.json());
-  } catch (error) {
-    view.innerHTML = "<section class=\"panel\"><h2>Sila Transactions</h2><p class=\"muted\">Transactions API error: " + silaTransactionsEscape(error.message) + "</p></section>";
-    return;
-  }
-
-  view.innerHTML = ""
-    + "<section class=\"sila-detail-hero\">"
-    + "  <div>"
-    + "    <small>Sila Transactions</small>"
-    + "    <h1>Transactions</h1>"
-    + "    <p class=\"muted\">Recent transactions scanned from live Sila blocks.</p>"
-    + "  </div>"
-    + "  <div class=\"sila-detail-actions\">"
-    + "    <button type=\"button\" data-page=\"blocks\">View Blocks</button>"
-    + "    <button type=\"button\" onclick=\"window.silaRenderTransactionsPage()\">Refresh</button>"
-    + "  </div>"
-    + "</section>"
-    + "<section class=\"panel sila-detail-card\">"
-    + "  <h2>Latest Transactions</h2>"
-    + "  <p class=\"muted\">Scanned " + silaTransactionsEscape(data.scannedBlockCount || 0) + " recent blocks. Found " + silaTransactionsEscape(data.count || 0) + " transaction(s).</p>"
-    + silaTransactionsRows(data.transactions || [])
-    + "</section>";
-}
-
-document.addEventListener("click", (event) => {
-  const target = event.target.closest("[data-page]");
-  if (!target) return;
-
-  const page = target.getAttribute("data-page");
-  if (page !== "txs" && page !== "transactions" && page !== "pending-txs") return;
-
-  event.preventDefault();
-  event.stopImmediatePropagation();
-  silaRenderTransactionsPage();
-}, true);
-
-window.silaRenderTransactionsPage = silaRenderTransactionsPage;
-// SILA_TRANSACTIONS_PAGE_END
 
 // SILA_MENU_ROUTER_START
 function silaMenuText(node) {
@@ -3019,3 +2907,204 @@ window.silaRenderRuntimePage = silaRenderRuntimePage;
   window.silaRenderBlockDetails = silaRenderBlockDetails;
 })();
 // SILA_BLOCK_DETAILS_PAGE_END
+
+// SILA_TRANSACTIONS_PAGE_START
+(function () {
+  "use strict";
+
+  const DEFAULT_LIMIT = 25;
+  const DEFAULT_BLOCK_SCAN = 500;
+
+  function esc(value) {
+    return String(value === null || value === undefined ? "—" : value)
+      .replaceAll("&", "&amp;")
+      .replaceAll("<", "&lt;")
+      .replaceAll(">", "&gt;")
+      .replaceAll("\"", "&quot;")
+      .replaceAll("'", "&#39;");
+  }
+
+  function shortText(value) {
+    const text = String(value || "");
+    return text.length > 22 ? text.slice(0, 12) + "..." + text.slice(-10) : (text || "—");
+  }
+
+  function dec(value) {
+    if (value === null || value === undefined || value === "") return "—";
+    if (typeof value === "number") return String(value);
+    const text = String(value);
+    if (text.startsWith("0x")) {
+      try { return BigInt(text).toString(10); } catch (_) { return text; }
+    }
+    return text;
+  }
+
+  async function readJson(url) {
+    const response = await fetch(url, { cache: "no-store" });
+    if (!response.ok) throw new Error("HTTP " + response.status + " for " + url);
+    return await response.json();
+  }
+
+  function ensureView() {
+    document.querySelectorAll(".view").forEach((view) => {
+      view.classList.add("hidden");
+      view.classList.remove("active-view");
+      view.style.display = "none";
+    });
+
+    let view = document.getElementById("featureView");
+    if (!view) {
+      view = document.createElement("section");
+      view.id = "featureView";
+      view.className = "view page";
+      (document.querySelector("main") || document.body).appendChild(view);
+    }
+
+    view.classList.remove("hidden");
+    view.classList.add("active-view");
+    view.style.display = "block";
+    return view;
+  }
+
+  function statCard(label, value, note) {
+    return ""
+      + "<article>"
+      + "  <span>" + esc(label) + "</span>"
+      + "  <strong>" + esc(value) + "</strong>"
+      + "  <small>" + esc(note || "") + "</small>"
+      + "</article>";
+  }
+
+  function emptyState(data) {
+    const latest = data.latestBlock || "—";
+    const scanned = data.scannedBlockCount || 0;
+
+    return ""
+      + "<section class=\"sila-official-card sila-transactions-empty-card\">"
+      + "  <div class=\"sila-empty-state\">"
+      + "    <div>"
+      + "      <strong>No Sila transactions in recent blocks yet.</strong>"
+      + "      <span>The explorer scanned " + esc(scanned) + " live block(s) up to block #" + esc(latest) + ". Transactions will appear automatically when execution transactions are included.</span>"
+      + "    </div>"
+      + "  </div>"
+      + "</section>";
+  }
+
+  function txRows(transactions) {
+    return transactions.map((tx) => {
+      const hash = tx.hash || "";
+      const block = tx.blockNumber || "—";
+      const from = tx.from || "—";
+      const to = tx.to || "";
+      const value = tx.valueWei || tx.value || "0";
+
+      return ""
+        + "<tr>"
+        + "  <td><button type=\"button\" class=\"linklike mono\" data-tx=\"" + esc(hash) + "\">" + esc(tx.hashShort || shortText(hash)) + "</button></td>"
+        + "  <td><button type=\"button\" class=\"linklike\" data-sila-block-detail=\"" + esc(block) + "\">#" + esc(block) + "</button></td>"
+        + "  <td><button type=\"button\" class=\"linklike mono\" data-address=\"" + esc(from) + "\">" + esc(tx.fromShort || shortText(from)) + "</button></td>"
+        + "  <td>" + (to ? "<button type=\"button\" class=\"linklike mono\" data-address=\"" + esc(to) + "\">" + esc(tx.toShort || shortText(to)) + "</button>" : "Contract Creation") + "</td>"
+        + "  <td>" + esc(dec(value)) + " wei</td>"
+        + "</tr>";
+    }).join("");
+  }
+
+  function transactionsTable(transactions) {
+    if (!transactions.length) return "";
+
+    return ""
+      + "<section class=\"sila-official-card\">"
+      + "  <div class=\"sila-section-head\"><h2>Latest Transactions</h2><small>" + esc(transactions.length) + " transaction(s)</small></div>"
+      + "  <div class=\"table-wrap sila-transactions-table-wrap\">"
+      + "    <table class=\"sila-transactions-table\">"
+      + "      <thead><tr><th>Txn Hash</th><th>Block</th><th>From</th><th>To</th><th>Value</th></tr></thead>"
+      + "      <tbody>" + txRows(transactions) + "</tbody>"
+      + "    </table>"
+      + "  </div>"
+      + "</section>";
+  }
+
+  function renderPage(data) {
+    const view = ensureView();
+    const transactions = Array.isArray(data.transactions) ? data.transactions : [];
+    const latest = data.latestBlock || "—";
+    const scanned = data.scannedBlockCount || 0;
+    const count = data.count || transactions.length || 0;
+    const chain = data.chain || "Sila";
+
+    view.innerHTML = ""
+      + "<section class=\"sila-transactions-page\">"
+      + "  <section class=\"sila-official-detail-hero\">"
+      + "    <div>"
+      + "      <small>Sila Transactions</small>"
+      + "      <h1>Transactions</h1>"
+      + "      <p>Live execution transactions scanned from recent Sila blocks.</p>"
+      + "    </div>"
+      + "    <div class=\"sila-detail-actions\">"
+      + "      <button type=\"button\" data-page=\"blocks\">View Blocks</button>"
+      + "      <button type=\"button\" id=\"silaTransactionsRefresh\">Refresh</button>"
+      + "    </div>"
+      + "  </section>"
+      + "  <section class=\"sila-official-stats-grid\">"
+      + statCard("Found", count, "Execution transactions")
+      + statCard("Scanned Blocks", scanned, "Recent block window")
+      + statCard("Latest Block", "#" + latest, "Current execution head")
+      + statCard("Chain", chain, "Live Sila API")
+      + "  </section>"
+      + (transactions.length ? transactionsTable(transactions) : emptyState(data))
+      + "  <section class=\"sila-official-card\">"
+      + "    <details class=\"sila-raw-json\">"
+      + "      <summary>Developer JSON</summary>"
+      + "      <pre>" + esc(JSON.stringify(data, null, 2)) + "</pre>"
+      + "    </details>"
+      + "  </section>"
+      + "</section>";
+  }
+
+  async function silaRenderTransactionsPage() {
+    const view = ensureView();
+    view.innerHTML = ""
+      + "<section class=\"sila-transactions-page\">"
+      + "  <section class=\"sila-official-detail-hero\">"
+      + "    <div><small>Sila Transactions</small><h1>Loading Transactions</h1><p>Scanning live Sila blocks...</p></div>"
+      + "  </section>"
+      + "</section>";
+
+    try {
+      const data = await readJson("/api/sila/transactions?limit=" + DEFAULT_LIMIT + "&blocks=" + DEFAULT_BLOCK_SCAN);
+      if (!data || data.ok === false) {
+        throw new Error((data && data.error) || "Sila transactions API returned ok=false");
+      }
+      renderPage(data);
+    } catch (error) {
+      view.innerHTML = "<section class=\"panel\"><h2>Sila Transactions</h2><p class=\"muted\">Transactions API error: " + esc(error.message || error) + "</p></section>";
+    }
+  }
+
+  if (!window.__silaOfficialTransactionsPageBound) {
+    window.__silaOfficialTransactionsPageBound = true;
+
+    document.addEventListener("click", function (event) {
+      const refresh = event.target.closest("#silaTransactionsRefresh");
+      if (refresh) {
+        event.preventDefault();
+        event.stopImmediatePropagation();
+        silaRenderTransactionsPage();
+        return;
+      }
+
+      const target = event.target.closest("[data-page]");
+      if (!target) return;
+
+      const page = target.getAttribute("data-page");
+      if (page !== "txs" && page !== "transactions" && page !== "pending-txs") return;
+
+      event.preventDefault();
+      event.stopImmediatePropagation();
+      silaRenderTransactionsPage();
+    }, true);
+  }
+
+  window.silaRenderTransactionsPage = silaRenderTransactionsPage;
+})();
+// SILA_TRANSACTIONS_PAGE_END
