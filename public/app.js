@@ -2499,7 +2499,14 @@ window.silaRenderRuntimePage = silaRenderRuntimePage;
   function fmtTime(ts) {
     const n = Number(ts || 0);
     if (!Number.isFinite(n) || n <= 0) return "—";
-    return new Date(n * 1000).toLocaleString();
+    const d = new Date(n * 1000);
+    const pad = (v) => String(v).padStart(2, "0");
+    return d.getUTCFullYear() + "-"
+      + pad(d.getUTCMonth() + 1) + "-"
+      + pad(d.getUTCDate()) + " "
+      + pad(d.getUTCHours()) + ":"
+      + pad(d.getUTCMinutes()) + ":"
+      + pad(d.getUTCSeconds()) + " UTC";
   }
 
   function age(ts) {
@@ -2795,7 +2802,14 @@ window.silaRenderRuntimePage = silaRenderRuntimePage;
   function dateText(timestamp) {
     const n = Number(timestamp || 0);
     if (!Number.isFinite(n) || n <= 0) return "—";
-    return new Date(n * 1000).toLocaleString();
+    const d = new Date(n * 1000);
+    const pad = (v) => String(v).padStart(2, "0");
+    return d.getUTCFullYear() + "-"
+      + pad(d.getUTCMonth() + 1) + "-"
+      + pad(d.getUTCDate()) + " "
+      + pad(d.getUTCHours()) + ":"
+      + pad(d.getUTCMinutes()) + ":"
+      + pad(d.getUTCSeconds()) + " UTC";
   }
 
   async function json(url) {
