@@ -107,8 +107,7 @@ function closeMenus() {
   const blockchainButton = byId("blockchainMenuButton");
   if (blockchainButton) blockchainButton.setAttribute("aria-expanded", "false");
 }
-
-function toggleMenu(id) {
+function toggleMenu(id) {function toggleMenu(id) {
   const menu = byId(id);
   if (!menu) return;
   const wasHidden = menu.classList.contains("hidden");
@@ -117,6 +116,8 @@ function toggleMenu(id) {
 }
 
 function showView(name) {
+  closeMenus();
+
   document.querySelectorAll(".view").forEach((node) => {
     node.classList.remove("active-view");
     node.classList.add("hidden");
@@ -147,8 +148,7 @@ function showView(name) {
 }
 
 window.showView = showView;
-
-function showResult(title, data) {
+function showResult(title, data) {function showResult(title, data) {
   showView("explorer");
   byId("resultPanel").classList.remove("hidden");
   setText("resultTitle", title);
@@ -1171,133 +1171,7 @@ window.silaSearchRoute = silaSearchRoute;
 // SILA_SEARCH_ROUTER_END
 
 
-// SILA_MENU_ROUTER_START
-function silaMenuText(node) {
-  return String(node ? node.textContent || "" : "").trim().toLowerCase();
-}
 
-function silaMenuClosestText(event) {
-  const item = event.target.closest("a, button, [data-page], [role=\"button\"], li");
-  return item ? silaMenuText(item) : "";
-}
-
-document.addEventListener("click", (event) => {
-  if (!event.target || typeof event.target.closest !== "function") return;
-
-  const item = event.target.closest("a, button, [data-page], [role=\"button\"], li");
-  if (!item) return;
-
-  const page = item.getAttribute("data-page");
-  const text = silaMenuClosestText(event);
-
-  const wantsBlocks = page === "blocks"
-    || text === "view blocks"
-    || text === "blocks"
-    || text.includes("view blocks");
-
-  const wantsTransactions = page === "txs"
-    || page === "transactions"
-    || page === "pending-txs"
-    || text === "sila transactions"
-    || text === "transactions"
-    || text === "pending sila transactions"
-    || text.includes("sila transactions")
-    || text.includes("pending sila transactions");
-
-  if (wantsBlocks && typeof window.silaRenderBlocksPage === "function") {
-    event.preventDefault();
-    event.stopImmediatePropagation();
-    window.silaRenderBlocksPage();
-    return;
-  }
-
-  if (wantsTransactions && typeof window.silaRenderTransactionsPage === "function") {
-    event.preventDefault();
-    event.stopImmediatePropagation();
-    window.silaRenderTransactionsPage();
-    return;
-  }
-}, true);
-// SILA_MENU_ROUTER_END
-
-// SILA_HOME_LINK_ROUTER_START
-function silaHomeText(node) {
-  return String(node ? node.textContent || "" : "").trim();
-}
-
-function silaHomeLooksLikeInteractive(node) {
-  if (!node || typeof node.closest !== "function") return false;
-  return !!node.closest("button, a, input, textarea, select, [data-block], [data-tx], [data-address], [data-sila-block-detail]");
-}
-
-function silaHomeNearestRecord(node) {
-  if (!node || typeof node.closest !== "function") return null;
-  return node.closest("tr, li, article, .block, .tx, .item, .row, .card, .panel");
-}
-
-function silaHomeInLatestArea(node) {
-  if (!node || typeof node.closest !== "function") return false;
-  const area = node.closest("section, .panel, main");
-  const text = silaHomeText(area).toLowerCase();
-  return text.includes("latest") || text.includes("recent") || text.includes("blocks") || text.includes("transactions");
-}
-
-function silaHomeFindBlockNumber(text) {
-  const withHash = String(text || "").match(/#([0-9]{1,20})/);
-  if (withHash) return withHash[1];
-
-  const plain = String(text || "").trim();
-  if (/^[0-9]{1,20}$/.test(plain)) return plain;
-
-  return null;
-}
-
-function silaHomeFindAddress(text) {
-  const match = String(text || "").match(/0x[0-9a-fA-F]{40}/);
-  return match ? match[0] : null;
-}
-
-function silaHomeFindHash(text) {
-  const match = String(text || "").match(/0x[0-9a-fA-F]{64}/);
-  return match ? match[0] : null;
-}
-
-document.addEventListener("click", (event) => {
-  if (!event.target || typeof event.target.closest !== "function") return;
-
-  if (silaHomeLooksLikeInteractive(event.target)) return;
-  if (!silaHomeInLatestArea(event.target)) return;
-
-  const targetText = silaHomeText(event.target);
-  const record = silaHomeNearestRecord(event.target);
-  const recordText = silaHomeText(record);
-
-  const hash = silaHomeFindHash(targetText) || silaHomeFindHash(recordText);
-  if (hash && typeof window.silaRouteSearchQuery === "function") {
-    event.preventDefault();
-    event.stopImmediatePropagation();
-    window.silaRouteSearchQuery(hash);
-    return;
-  }
-
-  const address = silaHomeFindAddress(targetText);
-  if (address && typeof window.silaRenderAddressDetails === "function") {
-    event.preventDefault();
-    event.stopImmediatePropagation();
-    window.silaRenderAddressDetails(address);
-    return;
-  }
-
-  const blockNumber = silaHomeFindBlockNumber(targetText);
-  if (blockNumber && typeof window.silaRenderBlockDetails === "function") {
-    event.preventDefault();
-    event.stopImmediatePropagation();
-    window.silaRenderBlockDetails(blockNumber);
-  }
-}, true);
-
-window.silaHomeFindBlockNumber = silaHomeFindBlockNumber;
-// SILA_HOME_LINK_ROUTER_END
 
 // SILA_HOME_DASHBOARD_START
 function silaHomeDashboardEscape(value) {
@@ -2261,122 +2135,6 @@ window.silaRenderRuntimePage = silaRenderRuntimePage;
 }());
 // SILA_PRETTY_ROUTE_BOOTSTRAP_END
 
-// SILA_CLIENT_ROUTER_START
-(function () {
-  const pageRoutes = {
-    blocks: "/blocks",
-    transactions: "/transactions",
-    runtime: "/runtime",
-    consensus: "/consensus",
-  };
-
-  const navRoutes = {
-    home: "/",
-    explorer: "/blocks",
-    validators: "/consensus",
-    more: "/runtime",
-  };
-
-  function setActive(viewName) {
-    document.querySelectorAll(".nav-btn").forEach((node) => node.classList.remove("active"));
-    const button = document.querySelector("[data-view=\"" + viewName + "\"]");
-    if (button) button.classList.add("active");
-  }
-
-  function renderPage(page) {
-    if (page === "blocks" && typeof window.silaRenderBlocksPage === "function") {
-      setActive("explorer");
-      window.silaRenderBlocksPage(null);
-      return true;
-    }
-
-    if (page === "transactions" && typeof window.silaRenderTransactionsPage === "function") {
-      setActive("explorer");
-      window.silaRenderTransactionsPage();
-      return true;
-    }
-
-    if (page === "runtime" && typeof window.silaRenderRuntimePage === "function") {
-      setActive("more");
-      window.silaRenderRuntimePage();
-      return true;
-    }
-
-    if (page === "consensus" && typeof window.silaRenderConsensusPage === "function") {
-      setActive("validators");
-      window.silaRenderConsensusPage();
-      return true;
-    }
-
-    return false;
-  }
-
-  function pageFromPath(pathname) {
-    const path = String(pathname || window.location.pathname || "/").replace(/\/+$/, "") || "/";
-    if (path === "/blocks") return "blocks";
-    if (path === "/transactions") return "transactions";
-    if (path === "/runtime") return "runtime";
-    if (path === "/consensus") return "consensus";
-    return null;
-  }
-
-  function goPage(page, push) {
-    if (!pageRoutes[page]) return false;
-
-    const ok = renderPage(page);
-    if (ok && push && window.location.pathname !== pageRoutes[page]) {
-      history.pushState({ silaPage: page }, "", pageRoutes[page]);
-    }
-
-    return ok;
-  }
-
-  document.addEventListener("click", (event) => {
-    const pageButton = event.target.closest("[data-page]");
-    if (pageButton) {
-      const page = pageButton.getAttribute("data-page");
-      if (pageRoutes[page]) {
-        event.preventDefault();
-        event.stopImmediatePropagation();
-        goPage(page, true);
-        return;
-      }
-    }
-
-    const navButton = event.target.closest(".nav-btn[data-view]");
-    if (!navButton) return;
-
-    const view = navButton.getAttribute("data-view");
-    const route = navRoutes[view];
-
-    if (!route) return;
-
-    event.preventDefault();
-    event.stopImmediatePropagation();
-
-    if (view === "home") {
-      if (typeof showView === "function") showView("home");
-      if (window.location.pathname !== "/") history.pushState({ silaView: "home" }, "", "/");
-      return;
-    }
-
-    const page = pageFromPath(route);
-    if (page) goPage(page, true);
-  }, true);
-
-  window.addEventListener("popstate", () => {
-    const page = pageFromPath(window.location.pathname);
-    if (page) {
-      goPage(page, false);
-      return;
-    }
-
-    if (window.location.pathname === "/" && typeof showView === "function") {
-      showView("home");
-    }
-  });
-}());
-// SILA_CLIENT_ROUTER_END
 
 // SILA_REAL_BLOCKS_EXPLORER_START
 (function () {
@@ -3134,59 +2892,21 @@ window.silaRenderRuntimePage = silaRenderRuntimePage;
 })();
 // SILA_TRANSACTIONS_PAGE_END
 
-// SILA_BLOCKCHAIN_DROPDOWN_START
+// SILA_OFFICIAL_NAV_ROUTER_START
 (function () {
   "use strict";
 
-  function closeBlockchainDropdown() {
-    const dropdown = document.getElementById("blockchainDropdown");
-    const button = document.getElementById("blockchainMenuButton");
-    if (dropdown) dropdown.classList.add("hidden");
-    if (button) button.setAttribute("aria-expanded", "false");
-  }
-
-  function openBlockchainDropdown() {
-    const dropdown = document.getElementById("blockchainDropdown");
-    const button = document.getElementById("blockchainMenuButton");
-    if (!dropdown || !button) return;
-
-    document.querySelectorAll(".dropdown").forEach((node) => {
-      if (node !== dropdown) node.classList.add("hidden");
+  function closeAllMenus() {
+    ["settingsDropdown", "languageDropdown", "networkDropdown", "blockchainDropdown"].forEach((id) => {
+      const node = document.getElementById(id);
+      if (node) node.classList.add("hidden");
     });
 
-    dropdown.classList.toggle("hidden");
-    button.setAttribute("aria-expanded", dropdown.classList.contains("hidden") ? "false" : "true");
+    const blockchainButton = document.getElementById("blockchainMenuButton");
+    if (blockchainButton) blockchainButton.setAttribute("aria-expanded", "false");
   }
 
-  document.addEventListener("click", function (event) {
-    const button = event.target.closest("#blockchainMenuButton");
-    if (button) {
-      event.preventDefault();
-      event.stopImmediatePropagation();
-      openBlockchainDropdown();
-      return;
-    }
-
-    if (event.target.closest("#blockchainDropdown")) return;
-
-    closeBlockchainDropdown();
-  }, true);
-
-  document.addEventListener("pointerdown", function (event) {
-    if (event.target.closest("#blockchainDropdown [data-page]")) {
-      closeBlockchainDropdown();
-    }
-  }, true);
-
-  window.silaCloseBlockchainDropdown = closeBlockchainDropdown;
-})();
-// SILA_BLOCKCHAIN_DROPDOWN_END
-
-// SILA_NAVIGATION_HARDENING_START
-(function () {
-  "use strict";
-
-  function setNavActive(name) {
+  function setActive(name) {
     document.querySelectorAll(".nav-btn").forEach((node) => node.classList.remove("active"));
 
     if (name === "blocks" || name === "transactions" || name === "explorer") {
@@ -3199,75 +2919,221 @@ window.silaRenderRuntimePage = silaRenderRuntimePage;
     if (button) button.classList.add("active");
   }
 
+  function pushPath(path) {
+    if (path && window.location.pathname !== path) {
+      history.pushState({ silaPath: path }, "", path);
+    }
+  }
+
   function routePage(page, push) {
-    if (page === "blocks" && typeof window.silaRenderBlocksPage === "function") {
-      window.silaRenderBlocksPage(null);
-      setNavActive("blocks");
-      if (push && window.location.pathname !== "/blocks") history.pushState({}, "", "/blocks");
+    if (page === "blocks") {
+      closeAllMenus();
+      setActive("blocks");
+
+      if (typeof window.silaRenderBlocksPage === "function") {
+        window.silaRenderBlocksPage(null);
+      } else if (typeof window.showView === "function") {
+        window.showView("explorer");
+      }
+
+      if (push) pushPath("/blocks");
       return true;
     }
 
-    if (page === "transactions" && typeof window.silaRenderTransactionsPage === "function") {
-      window.silaRenderTransactionsPage();
-      setNavActive("transactions");
-      if (push && window.location.pathname !== "/transactions") history.pushState({}, "", "/transactions");
+    if (page === "transactions" || page === "txs" || page === "pending-txs") {
+      closeAllMenus();
+      setActive("transactions");
+
+      if (typeof window.silaRenderTransactionsPage === "function") {
+        window.silaRenderTransactionsPage();
+      } else if (typeof window.showView === "function") {
+        window.showView("explorer");
+      }
+
+      if (push) pushPath("/transactions");
       return true;
     }
 
-    if (page === "runtime" && typeof window.silaRenderRuntimePage === "function") {
-      window.silaRenderRuntimePage();
-      setNavActive("more");
-      if (push && window.location.pathname !== "/runtime") history.pushState({}, "", "/runtime");
+    if (page === "runtime") {
+      closeAllMenus();
+      setActive("more");
+
+      if (typeof window.silaRenderRuntimePage === "function") {
+        window.silaRenderRuntimePage();
+      } else if (typeof window.showView === "function") {
+        window.showView("more");
+      }
+
+      if (push) pushPath("/runtime");
       return true;
     }
 
-    if (page === "consensus" && typeof window.silaRenderConsensusPage === "function") {
-      window.silaRenderConsensusPage();
-      setNavActive("validators");
-      if (push && window.location.pathname !== "/consensus") history.pushState({}, "", "/consensus");
+    if (page === "consensus") {
+      closeAllMenus();
+      setActive("validators");
+
+      if (typeof window.silaRenderConsensusPage === "function") {
+        window.silaRenderConsensusPage();
+      } else if (typeof window.showView === "function") {
+        window.showView("validators");
+      }
+
+      if (push) pushPath("/consensus");
       return true;
     }
 
     return false;
   }
 
+  function routeView(view, push) {
+    closeAllMenus();
+
+    if (view === "explorer") return routePage("blocks", push);
+    if (view === "validators") return routePage("consensus", push);
+    if (view === "more") return routePage("runtime", push);
+
+    if (typeof window.showView === "function") {
+      window.showView(view);
+      setActive(view);
+      if (push) pushPath("/");
+      return true;
+    }
+
+    return false;
+  }
+
+  function routeBlock(blockId, push) {
+    closeAllMenus();
+    setActive("blocks");
+
+    if (typeof window.silaRenderBlockDetails === "function") {
+      window.silaRenderBlockDetails(blockId);
+      if (push) pushPath("/blocks");
+      return true;
+    }
+
+    return routePage("blocks", push);
+  }
+
+  function routeTx(txHash, push) {
+    closeAllMenus();
+    setActive("transactions");
+
+    if (typeof window.silaRenderTxDetails === "function") {
+      window.silaRenderTxDetails(txHash);
+      if (push) pushPath("/transactions");
+      return true;
+    }
+
+    return routePage("transactions", push);
+  }
+
+  function routeAddress(address, push) {
+    closeAllMenus();
+
+    if (typeof window.silaRenderAddressDetails === "function") {
+      window.silaRenderAddressDetails(address);
+      if (push) pushPath("/");
+      return true;
+    }
+
+    return false;
+  }
+
+  function toggleBlockchainMenu() {
+    const dropdown = document.getElementById("blockchainDropdown");
+    const button = document.getElementById("blockchainMenuButton");
+    if (!dropdown || !button) return false;
+
+    const wasHidden = dropdown.classList.contains("hidden");
+    closeAllMenus();
+
+    if (wasHidden) {
+      dropdown.classList.remove("hidden");
+      button.setAttribute("aria-expanded", "true");
+    }
+
+    return true;
+  }
+
   document.addEventListener("click", function (event) {
+    if (!event.target || typeof event.target.closest !== "function") return;
+
+    const blockchainButton = event.target.closest("#blockchainMenuButton");
+    if (blockchainButton) {
+      event.preventDefault();
+      event.stopImmediatePropagation();
+      toggleBlockchainMenu();
+      return;
+    }
+
     const pageTarget = event.target.closest("[data-page]");
     if (pageTarget) {
       const page = pageTarget.getAttribute("data-page");
       if (routePage(page, true)) {
         event.preventDefault();
         event.stopImmediatePropagation();
+        return;
+      }
+    }
 
-        if (typeof window.silaCloseBlockchainDropdown === "function") {
-          window.silaCloseBlockchainDropdown();
-        }
+    const blockTarget = event.target.closest("[data-sila-block-detail], [data-block]");
+    if (blockTarget) {
+      const blockId = blockTarget.getAttribute("data-sila-block-detail") || blockTarget.getAttribute("data-block");
+      if (blockId && routeBlock(blockId, true)) {
+        event.preventDefault();
+        event.stopImmediatePropagation();
+        return;
+      }
+    }
 
+    const txTarget = event.target.closest("[data-tx]");
+    if (txTarget) {
+      const txHash = txTarget.getAttribute("data-tx");
+      if (txHash && routeTx(txHash, true)) {
+        event.preventDefault();
+        event.stopImmediatePropagation();
+        return;
+      }
+    }
+
+    const addressTarget = event.target.closest("[data-address]");
+    if (addressTarget) {
+      const address = addressTarget.getAttribute("data-address");
+      if (address && routeAddress(address, true)) {
+        event.preventDefault();
+        event.stopImmediatePropagation();
         return;
       }
     }
 
     const viewTarget = event.target.closest("[data-view]");
-    if (viewTarget && !viewTarget.closest("#blockchainDropdown")) {
+    if (viewTarget) {
       const view = viewTarget.getAttribute("data-view");
-      if (typeof window.showView === "function") {
+      if (view && routeView(view, true)) {
         event.preventDefault();
         event.stopImmediatePropagation();
-        window.showView(view);
-        if (view === "home" && window.location.pathname !== "/") history.pushState({}, "", "/");
+        return;
       }
+    }
+
+    if (!event.target.closest(".dropdown, .menu-wrap")) {
+      closeAllMenus();
     }
   }, true);
 
   window.addEventListener("popstate", function () {
-    const path = window.location.pathname.replace(/\/+$/, "") || "/";
+    const path = String(window.location.pathname || "/").replace(/\/+$/, "") || "/";
+
     if (path === "/blocks") routePage("blocks", false);
     else if (path === "/transactions") routePage("transactions", false);
     else if (path === "/runtime") routePage("runtime", false);
     else if (path === "/consensus") routePage("consensus", false);
-    else if (typeof window.showView === "function") window.showView("home");
+    else routeView("home", false);
   });
 
   window.silaRoutePage = routePage;
+  window.silaRouteView = routeView;
+  window.silaCloseBlockchainDropdown = closeAllMenus;
 })();
- // SILA_NAVIGATION_HARDENING_END
+// SILA_OFFICIAL_NAV_ROUTER_END

@@ -3077,3 +3077,20 @@ html[dir="rtl"] .nav-dropdown {
   }
 }
 /* SILA_BLOCKCHAIN_DROPDOWN_END */
+
+/* SILA_CLICKABLE_CARDS_START */
+.overview-row[data-page],
+.panel-footer-btn[data-page],
+.small-btn[data-page],
+[data-block],
+[data-sila-block-detail],
+[data-tx],
+[data-address] {
+  cursor: pointer !important;
+}
+
+.overview-row[data-page]:hover {
+  transform: translateY(-1px);
+  background: rgba(140, 198, 63, 0.08) !important;
+}
+/* SILA_CLICKABLE_CARDS_END */
