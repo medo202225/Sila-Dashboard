@@ -1387,7 +1387,7 @@ async function silaSearchRoute(rawQuery) {
 
 
 if (typeof window !== "undefined") {
-  window.silaSearchRun = silaSearchRun;
+  window.silaSearchRun = silaSearchRoute;
 }
 function silaSearchFindInput(root) {
   const scope = root || document;
