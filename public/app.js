@@ -1385,6 +1385,10 @@ async function silaSearchRoute(rawQuery) {
   silaSearchMessage("Unsupported Search", "Use a Sila transaction hash, address, decimal block number, or hex block number.", query);
 }
 
+
+if (typeof window !== "undefined") {
+  window.silaSearchRun = silaSearchRun;
+}
 function silaSearchFindInput(root) {
   const scope = root || document;
   return scope.querySelector(
