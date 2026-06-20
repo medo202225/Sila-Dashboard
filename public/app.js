@@ -3173,6 +3173,82 @@ window.silaRenderRuntimePage = silaRenderRuntimePage;
 })();
 // SILA_TRANSACTIONS_PAGE_END
 
+// SILA_VISIBLE_SEARCH_ROUTER_START
+(function () {
+  "use strict";
+
+  function findSearchInput(root) {
+    const scope = root || document;
+    if (typeof silaSearchFindInput === "function") {
+      const input = silaSearchFindInput(scope);
+      if (input) return input;
+    }
+
+    return scope.querySelector(
+      "[data-sila-search-input], [data-search-input], #sila-search-input, #searchInput, input[type='search'], input[name='q'], input[placeholder*='Search'], input[placeholder*='search']"
+    );
+  }
+
+  function runVisibleSearch(input) {
+    if (!input || typeof window.silaSearchRun !== "function") return false;
+
+    const query = String(input.value || "").trim();
+    if (!query) return false;
+
+    window.silaSearchRun(query);
+    return true;
+  }
+
+  document.addEventListener("submit", (event) => {
+    const input = findSearchInput(event.target);
+    if (!input) return;
+
+    if (runVisibleSearch(input)) {
+      event.preventDefault();
+      event.stopImmediatePropagation();
+    }
+  }, true);
+
+  document.addEventListener("click", (event) => {
+    const button = event.target.closest("button, [role='button'], input[type='submit']");
+    if (!button) return;
+
+    const text = String(button.textContent || button.value || "").trim().toLowerCase();
+    const isSearchButton =
+      button.matches("[data-sila-search-button], [data-search-button], #searchButton")
+      || text === "search"
+      || text === "بحث";
+
+    if (!isSearchButton) return;
+
+    const host = button.closest("form, section, header, main, .hero, .search-wrap, .search-box") || document;
+    const input = findSearchInput(host) || findSearchInput(document);
+
+    if (runVisibleSearch(input)) {
+      event.preventDefault();
+      event.stopImmediatePropagation();
+    }
+  }, true);
+
+  document.addEventListener("keydown", (event) => {
+    if (event.key !== "Enter") return;
+
+    const input = event.target && event.target.matches
+      ? event.target.matches("[data-sila-search-input], [data-search-input], #sila-search-input, #searchInput, input[type='search'], input[name='q'], input[placeholder*='Search'], input[placeholder*='search']")
+        ? event.target
+        : null
+      : null;
+
+    if (!input) return;
+
+    if (runVisibleSearch(input)) {
+      event.preventDefault();
+      event.stopImmediatePropagation();
+    }
+  }, true);
+})();
+// SILA_VISIBLE_SEARCH_ROUTER_END
+
 // SILA_OFFICIAL_NAV_ROUTER_START
 (function () {
   "use strict";
