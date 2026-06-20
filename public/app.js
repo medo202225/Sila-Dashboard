@@ -343,7 +343,7 @@ function showResult(title, data) {
       }
     }
 
-    const blockTarget = event.target.closest("[data-sila-block-detail], [data-sila-block-open], [data-block]");
+    const blockTarget = event.target.closest("[data-sila-block-detail], [data-block]");
     if (blockTarget) {
       const blockId = blockTarget.getAttribute("data-sila-block-detail")
         || blockTarget.getAttribute("data-sila-block-open")
