@@ -107,7 +107,7 @@ function closeMenus() {
   const blockchainButton = byId("blockchainMenuButton");
   if (blockchainButton) blockchainButton.setAttribute("aria-expanded", "false");
 }
-function toggleMenu(id) {function toggleMenu(id) {
+function toggleMenu(id) {
   const menu = byId(id);
   if (!menu) return;
   const wasHidden = menu.classList.contains("hidden");
@@ -148,7 +148,7 @@ function showView(name) {
 }
 
 window.showView = showView;
-function showResult(title, data) {function showResult(title, data) {
+function showResult(title, data) {
   showView("explorer");
   byId("resultPanel").classList.remove("hidden");
   setText("resultTitle", title);
