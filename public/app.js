@@ -527,166 +527,6 @@ document.addEventListener("click", (event) => {
 window.silaRenderBlocksPage = silaRenderBlocksPage;
 // SILA_REAL_BLOCKS_PAGE_END
 
-// SILA_BLOCK_DETAILS_PAGE_START
-function silaDetailEscape(value) {
-  return String(value === null || value === undefined ? "—" : value)
-    .replaceAll("&", "&amp;")
-    .replaceAll("<", "&lt;")
-    .replaceAll(">", "&gt;")
-    .replaceAll("\"", "&quot;")
-    .replaceAll("'", "&#39;");
-}
-
-function silaDetailShort(value) {
-  if (!value || typeof value !== "string") return "—";
-  return value.length <= 22 ? value : value.slice(0, 12) + "..." + value.slice(-10);
-}
-
-function silaDetailAge(timestamp) {
-  if (!timestamp) return "—";
-  const seconds = Math.max(0, Math.floor(Date.now() / 1000) - Number(timestamp));
-  if (!Number.isFinite(seconds)) return "—";
-  if (seconds < 60) return seconds + " secs ago";
-  const minutes = Math.floor(seconds / 60);
-  if (minutes < 60) return minutes + " mins ago";
-  const hours = Math.floor(minutes / 60);
-  if (hours < 24) return hours + " hrs ago";
-  const days = Math.floor(hours / 24);
-  return days + " days ago";
-}
-
-function silaDetailEnsureView() {
-  let view = document.getElementById("featureView");
-  if (view) return view;
-
-  view = document.createElement("section");
-  view.id = "featureView";
-  view.className = "view page";
-  document.querySelector("main").appendChild(view);
-  return view;
-}
-
-function silaDetailShowView() {
-  document.querySelectorAll(".view").forEach((node) => node.classList.remove("active-view"));
-  const view = silaDetailEnsureView();
-  view.classList.add("active-view");
-  return view;
-}
-
-function silaDetailRow(label, value, mono, copy) {
-  const safeValue = silaDetailEscape(value);
-  const copyButton = copy && value && value !== "—"
-    ? " <button class=\"sila-copy-btn\" type=\"button\" data-copy=\"" + safeValue + "\">Copy</button>"
-    : "";
-
-  return ""
-    + "<div class=\"sila-detail-label\">" + silaDetailEscape(label) + "</div>"
-    + "<div class=\"sila-detail-value" + (mono ? " mono" : "") + "\">" + safeValue + copyButton + "</div>";
-}
-
-async function silaRenderBlockDetails(blockId) {
-  const view = silaDetailShowView();
-
-  view.innerHTML = ""
-    + "<section class=\"sila-detail-hero\">"
-    + "  <div>"
-    + "    <small>Block Details</small>"
-    + "    <h1>Sila Block</h1>"
-    + "    <p class=\"muted\">Loading Sila block details...</p>"
-    + "  </div>"
-    + "</section>";
-
-  let data;
-
-  try {
-    data = await fetch("/api/sila/block/" + encodeURIComponent(blockId), { cache: "no-store" }).then((res) => res.json());
-  } catch (error) {
-    view.innerHTML = "<section class=\"panel\"><h2>Sila Block</h2><p class=\"muted\">Block API error: " + silaDetailEscape(error.message) + "</p></section>";
-    return;
-  }
-
-  if (!data || !data.ok || !data.block) {
-    view.innerHTML = "<section class=\"panel\"><h2>Sila Block</h2><p class=\"muted\">Sila block not found.</p><pre>" + silaDetailEscape(JSON.stringify(data, null, 2)) + "</pre></section>";
-    return;
-  }
-
-  const block = data.block;
-  const number = block.number || "—";
-  const prev = number !== "—" && Number(number) > 0 ? String(Number(number) - 1) : null;
-  const next = number !== "—" ? String(Number(number) + 1) : null;
-
-  view.innerHTML = ""
-    + "<section class=\"sila-detail-hero\">"
-    + "  <div>"
-    + "    <small>Block Details</small>"
-    + "    <h1>Sila Block #" + silaDetailEscape(number) + "</h1>"
-    + "    <p class=\"muted\">Detailed execution-layer block information from Sila RPC.</p>"
-    + "  </div>"
-    + "  <div class=\"sila-detail-actions\">"
-    + "    <button type=\"button\" data-page=\"blocks\">All Blocks</button>"
-    + (prev ? "    <button type=\"button\" data-sila-block-detail=\"" + silaDetailEscape(prev) + "\">Previous</button>" : "")
-    + (next ? "    <button type=\"button\" data-sila-block-detail=\"" + silaDetailEscape(next) + "\">Next</button>" : "")
-    + "  </div>"
-    + "</section>"
-    + "<section class=\"panel sila-detail-card\">"
-    + "  <h2>Overview</h2>"
-    + "  <div class=\"sila-detail-grid\">"
-    + silaDetailRow("Block Height", "#" + number, false, false)
-    + silaDetailRow("Status", "Finalized / canonical data depends on consensus finality endpoint", false, false)
-    + silaDetailRow("Timestamp", block.timestamp ? block.timestamp + " (" + silaDetailAge(block.timestamp) + ")" : "—", false, false)
-    + silaDetailRow("Transactions", block.transactionCount || 0, false, false)
-    + silaBlockTxRows(block)
-    + silaDetailRow("Fee Recipient", block.miner || "—", true, true)
-    + silaDetailRow("Block Reward", block.reward || "0 SILA", false, false)
-    + silaDetailRow("Gas Used", block.gasUsed || "0", false, false)
-    + silaDetailRow("Gas Limit", block.gasLimit || "—", false, false)
-    + silaDetailRow("Base Fee Per Gas", block.baseFeePerGas ? block.baseFeePerGas + " wei" : "—", false, false)
-    + silaDetailRow("Hash", block.hash || "—", true, true)
-    + silaDetailRow("Parent Hash", block.parentHash || "—", true, true)
-    + "  </div>"
-    + "</section>"
-    + "<section class=\"panel sila-detail-card\">"
-    + "  <h2>Raw Sila Block JSON</h2>"
-    + "  <pre>" + silaDetailEscape(JSON.stringify(data.raw && data.raw.value ? data.raw.value : data, null, 2)) + "</pre>"
-    + "</section>";
-}
-
-document.addEventListener("click", (event) => {
-  const detailButton = event.target.closest("[data-sila-block-detail]");
-  if (detailButton) {
-    event.preventDefault();
-    event.stopImmediatePropagation();
-    silaRenderBlockDetails(detailButton.getAttribute("data-sila-block-detail"));
-    return;
-  }
-
-  const blockButton = event.target.closest("[data-block]");
-  if (!blockButton) return;
-
-  const blockId = blockButton.getAttribute("data-block");
-  if (!blockId) return;
-
-  event.preventDefault();
-  event.stopImmediatePropagation();
-  silaRenderBlockDetails(blockId);
-}, true);
-
-document.addEventListener("click", (event) => {
-  const copyButton = event.target.closest("[data-copy]");
-  if (!copyButton) return;
-
-  const value = copyButton.getAttribute("data-copy");
-  navigator.clipboard.writeText(value).then(() => {
-    copyButton.textContent = "Copied";
-    setTimeout(() => { copyButton.textContent = "Copy"; }, 900);
-  }).catch(() => {
-    copyButton.textContent = "Copy failed";
-    setTimeout(() => { copyButton.textContent = "Copy"; }, 900);
-  });
-});
-
-window.silaRenderBlockDetails = silaRenderBlockDetails;
-// SILA_BLOCK_DETAILS_PAGE_END
 
 
 // SILA_BLOCK_TXS_RENDER_START
@@ -2910,3 +2750,257 @@ window.silaRenderRuntimePage = silaRenderRuntimePage;
   }
 })();
 // SILA_REAL_BLOCKS_EXPLORER_END
+
+// SILA_BLOCK_DETAILS_PAGE_START
+(function () {
+  "use strict";
+
+  function esc(value) {
+    return String(value === null || value === undefined ? "—" : value)
+      .replaceAll("&", "&amp;")
+      .replaceAll("<", "&lt;")
+      .replaceAll(">", "&gt;")
+      .replaceAll("\"", "&quot;")
+      .replaceAll("'", "&#39;");
+  }
+
+  function shortText(value) {
+    const text = String(value || "");
+    return text.length > 22 ? text.slice(0, 12) + "..." + text.slice(-10) : (text || "—");
+  }
+
+  function dec(value) {
+    if (value === null || value === undefined || value === "") return "—";
+    if (typeof value === "number") return String(value);
+    const text = String(value);
+    if (text.startsWith("0x")) {
+      try { return BigInt(text).toString(10); } catch (_) { return text; }
+    }
+    return text;
+  }
+
+  function age(timestamp) {
+    const n = Number(timestamp || 0);
+    if (!Number.isFinite(n) || n <= 0) return "—";
+    const seconds = Math.max(0, Math.floor(Date.now() / 1000) - n);
+    if (seconds < 60) return seconds + " seconds ago";
+    const minutes = Math.floor(seconds / 60);
+    if (minutes < 60) return minutes + " minutes ago";
+    const hours = Math.floor(minutes / 60);
+    if (hours < 24) return hours + " hours ago";
+    return Math.floor(hours / 24) + " days ago";
+  }
+
+  function dateText(timestamp) {
+    const n = Number(timestamp || 0);
+    if (!Number.isFinite(n) || n <= 0) return "—";
+    return new Date(n * 1000).toLocaleString();
+  }
+
+  async function json(url) {
+    const res = await fetch(url, { cache: "no-store" });
+    if (!res.ok) throw new Error("HTTP " + res.status + " for " + url);
+    return await res.json();
+  }
+
+  function ensureView() {
+    document.querySelectorAll(".view").forEach((view) => {
+      view.classList.add("hidden");
+      view.classList.remove("active-view");
+      view.style.display = "none";
+    });
+
+    let view = document.getElementById("featureView");
+    if (!view) {
+      view = document.createElement("section");
+      view.id = "featureView";
+      view.className = "view page";
+      (document.querySelector("main") || document.body).appendChild(view);
+    }
+
+    view.classList.remove("hidden");
+    view.classList.add("active-view");
+    view.style.display = "";
+    return view;
+  }
+
+  function copyButton(value) {
+    if (!value || value === "—") return "";
+    return " <button type=\"button\" class=\"sila-copy-btn\" data-copy=\"" + esc(value) + "\">Copy</button>";
+  }
+
+  function statCard(label, value, note, mono) {
+    return ""
+      + "<article>"
+      + "  <span>" + esc(label) + "</span>"
+      + "  <strong" + (mono ? " class=\"mono\"" : "") + ">" + esc(value) + "</strong>"
+      + "  <small>" + esc(note || "") + "</small>"
+      + "</article>";
+  }
+
+  function detailRow(label, value, mono, copy) {
+    const raw = value === null || value === undefined ? "—" : String(value);
+    return ""
+      + "<div class=\"sila-official-detail-row\">"
+      + "  <span>" + esc(label) + "</span>"
+      + "  <strong" + (mono ? " class=\"mono\"" : "") + ">" + esc(raw) + (copy ? copyButton(raw) : "") + "</strong>"
+      + "</div>";
+  }
+
+  function txSection(block) {
+    const txs = block && Array.isArray(block.transactions) ? block.transactions : [];
+
+    if (!txs.length) {
+      return ""
+        + "<section class=\"sila-official-card\">"
+        + "  <div class=\"sila-section-head\"><h2>Block Transactions</h2><small>0 transactions</small></div>"
+        + "  <div class=\"sila-empty-state\"><div><strong>No transactions in this Sila block.</strong><span>This block was produced without execution transactions.</span></div></div>"
+        + "</section>";
+    }
+
+    const rows = txs.map((tx) => {
+      const hash = tx.hash || tx;
+      return ""
+        + "<tr>"
+        + "  <td><button type=\"button\" class=\"linklike\" data-tx=\"" + esc(hash) + "\">" + esc(shortText(hash)) + "</button></td>"
+        + "  <td class=\"mono\">" + esc(shortText(tx.from || "—")) + "</td>"
+        + "  <td class=\"mono\">" + esc(shortText(tx.to || "Contract Creation")) + "</td>"
+        + "  <td>" + esc(dec(tx.value || "0x0")) + " wei</td>"
+        + "  <td>" + esc(dec(tx.gas || "0x0")) + "</td>"
+        + "</tr>";
+    }).join("");
+
+    return ""
+      + "<section class=\"sila-official-card\">"
+      + "  <div class=\"sila-section-head\"><h2>Block Transactions</h2><small>" + esc(txs.length) + " transactions</small></div>"
+      + "  <div class=\"table-wrap\"><table class=\"sila-blocks-table\">"
+      + "    <thead><tr><th>Hash</th><th>From</th><th>To</th><th>Value</th><th>Gas</th></tr></thead>"
+      + "    <tbody>" + rows + "</tbody>"
+      + "  </table></div>"
+      + "</section>";
+  }
+
+  function render(blockId, data) {
+    const view = ensureView();
+    const block = data.block || data;
+    const raw = data.raw && data.raw.value ? data.raw.value : data;
+    const number = dec(block.number || block.numberHex || blockId);
+    const prev = number !== "—" && Number(number) > 0 ? String(Number(number) - 1) : null;
+    const next = number !== "—" ? String(Number(number) + 1) : null;
+
+    const hash = block.hash || "—";
+    const parentHash = block.parentHash || "—";
+    const feeRecipient = block.miner || "—";
+    const txCount = block.transactionCount || (Array.isArray(block.transactions) ? block.transactions.length : 0);
+    const baseFee = block.baseFeePerGas !== undefined ? dec(block.baseFeePerGas) + " wei" : "—";
+    const gasUsed = dec(block.gasUsed || "0");
+    const gasLimit = dec(block.gasLimit || "—");
+
+    view.innerHTML = ""
+      + "<section class=\"sila-official-detail-page\">"
+      + "  <section class=\"sila-official-detail-hero\">"
+      + "    <div>"
+      + "      <small>Block Details</small>"
+      + "      <h1>Sila Block #" + esc(number) + "</h1>"
+      + "      <p>Execution-layer block data read directly from the live Sila RPC.</p>"
+      + "    </div>"
+      + "    <div class=\"sila-detail-actions\">"
+      + "      <button type=\"button\" data-page=\"blocks\">All Blocks</button>"
+      + (prev ? "      <button type=\"button\" data-sila-block-detail=\"" + esc(prev) + "\">Previous</button>" : "")
+      + (next ? "      <button type=\"button\" data-sila-block-detail=\"" + esc(next) + "\">Next</button>" : "")
+      + "    </div>"
+      + "  </section>"
+      + "  <section class=\"sila-official-stats-grid\">"
+      + statCard("Block Height", "#" + number, "Canonical status is provided by the node", false)
+      + statCard("Transactions", txCount, "Execution transactions", false)
+      + statCard("Gas Used", gasUsed, "Limit " + gasLimit, false)
+      + statCard("Base Fee", baseFee, "Per gas", false)
+      + "  </section>"
+      + "  <section class=\"sila-official-card\">"
+      + "    <div class=\"sila-section-head\"><h2>Overview</h2><small>Live block fields</small></div>"
+      + "    <div class=\"sila-official-detail-grid\">"
+      + detailRow("Block Height", "#" + number, false, false)
+      + detailRow("Timestamp", block.timestamp ? dateText(block.timestamp) + " / " + age(block.timestamp) : "—", false, false)
+      + detailRow("Transactions", txCount, false, false)
+      + detailRow("Fee Recipient", feeRecipient, true, true)
+      + detailRow("Block Reward", block.reward || "0 SILA", false, false)
+      + detailRow("Gas Used", gasUsed, false, false)
+      + detailRow("Gas Limit", gasLimit, false, false)
+      + detailRow("Base Fee Per Gas", baseFee, false, false)
+      + detailRow("Hash", hash, true, true)
+      + detailRow("Parent Hash", parentHash, true, true)
+      + "    </div>"
+      + "  </section>"
+      + txSection(block)
+      + "  <section class=\"sila-official-card\">"
+      + "    <details class=\"sila-raw-json\">"
+      + "      <summary>Raw Sila Block JSON</summary>"
+      + "      <pre>" + esc(JSON.stringify(raw, null, 2)) + "</pre>"
+      + "    </details>"
+      + "  </section>"
+      + "</section>";
+  }
+
+  async function silaRenderBlockDetails(blockId) {
+    const view = ensureView();
+
+    view.innerHTML = ""
+      + "<section class=\"sila-official-detail-page\">"
+      + "  <section class=\"sila-official-detail-hero\">"
+      + "    <div><small>Block Details</small><h1>Loading Sila Block</h1><p>Reading live data from /api/sila/block.</p></div>"
+      + "  </section>"
+      + "</section>";
+
+    try {
+      const data = await json("/api/sila/block/" + encodeURIComponent(blockId));
+      if (!data || !data.ok || !data.block) {
+        view.innerHTML = "<section class=\"panel\"><h2>Sila Block</h2><p class=\"muted\">Sila block not found.</p><pre>" + esc(JSON.stringify(data, null, 2)) + "</pre></section>";
+        return;
+      }
+      render(blockId, data);
+    } catch (error) {
+      view.innerHTML = "<section class=\"panel\"><h2>Sila Block</h2><p class=\"muted\">Block API error: " + esc(error.message || error) + "</p></section>";
+    }
+  }
+
+  if (!window.__silaOfficialBlockDetailBound) {
+    window.__silaOfficialBlockDetailBound = true;
+
+    document.addEventListener("click", function (event) {
+      const detailButton = event.target.closest("[data-sila-block-detail]");
+      if (detailButton) {
+        event.preventDefault();
+        event.stopImmediatePropagation();
+        silaRenderBlockDetails(detailButton.getAttribute("data-sila-block-detail"));
+        return;
+      }
+
+      const blockButton = event.target.closest("[data-block]");
+      if (!blockButton) return;
+
+      const blockId = blockButton.getAttribute("data-block");
+      if (!blockId) return;
+
+      event.preventDefault();
+      event.stopImmediatePropagation();
+      silaRenderBlockDetails(blockId);
+    }, true);
+
+    document.addEventListener("click", function (event) {
+      const copy = event.target.closest("[data-copy]");
+      if (!copy) return;
+
+      const value = copy.getAttribute("data-copy") || "";
+      navigator.clipboard.writeText(value).then(function () {
+        copy.textContent = "Copied";
+        setTimeout(function () { copy.textContent = "Copy"; }, 900);
+      }).catch(function () {
+        copy.textContent = "Copy failed";
+        setTimeout(function () { copy.textContent = "Copy"; }, 900);
+      });
+    });
+  }
+
+  window.silaRenderBlockDetails = silaRenderBlockDetails;
+})();
+// SILA_BLOCK_DETAILS_PAGE_END
