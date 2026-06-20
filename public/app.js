@@ -155,6 +155,250 @@ function showResult(title, data) {
   byId("resultBody").textContent = JSON.stringify(data, null, 2);
 }
 
+
+// SILA_EARLY_NAV_ROUTER_START
+(function () {
+  "use strict";
+
+  function closeMenusEarly() {
+    ["settingsDropdown", "languageDropdown", "networkDropdown", "blockchainDropdown"].forEach((id) => {
+      const node = document.getElementById(id);
+      if (node) node.classList.add("hidden");
+    });
+
+    const button = document.getElementById("blockchainMenuButton");
+    if (button) button.setAttribute("aria-expanded", "false");
+  }
+
+  function pushPath(path) {
+    if (path && window.location.pathname !== path) {
+      history.pushState({ silaEarlyPath: path }, "", path);
+    }
+  }
+
+  function setActive(viewName) {
+    document.querySelectorAll(".nav-btn").forEach((node) => node.classList.remove("active"));
+
+    if (viewName === "blocks" || viewName === "transactions" || viewName === "explorer") {
+      const blockchainButton = document.getElementById("blockchainMenuButton");
+      if (blockchainButton) blockchainButton.classList.add("active");
+      return;
+    }
+
+    const button = document.querySelector("[data-view=\"" + viewName + "\"]");
+    if (button) button.classList.add("active");
+  }
+
+  function routePageEarly(page, push) {
+    if (page === "blocks") {
+      closeMenusEarly();
+      setActive("blocks");
+
+      if (typeof window.silaRenderBlocksPage === "function") {
+        window.silaRenderBlocksPage(null);
+      } else if (typeof window.showView === "function") {
+        window.showView("explorer");
+      }
+
+      if (push) pushPath("/blocks");
+      return true;
+    }
+
+    if (page === "transactions" || page === "txs" || page === "pending-txs") {
+      closeMenusEarly();
+      setActive("transactions");
+
+      if (typeof window.silaRenderTransactionsPage === "function") {
+        window.silaRenderTransactionsPage();
+      } else if (typeof window.showView === "function") {
+        window.showView("explorer");
+      }
+
+      if (push) pushPath("/transactions");
+      return true;
+    }
+
+    if (page === "runtime" || page === "status") {
+      closeMenusEarly();
+      setActive("more");
+
+      if (typeof window.silaRenderRuntimePage === "function") {
+        window.silaRenderRuntimePage();
+      } else if (typeof window.showView === "function") {
+        window.showView("more");
+      }
+
+      if (push) pushPath("/runtime");
+      return true;
+    }
+
+    if (page === "consensus") {
+      closeMenusEarly();
+      setActive("validators");
+
+      if (typeof window.silaRenderConsensusPage === "function") {
+        window.silaRenderConsensusPage();
+      } else if (typeof window.showView === "function") {
+        window.showView("validators");
+      }
+
+      if (push) pushPath("/consensus");
+      return true;
+    }
+
+    return false;
+  }
+
+  function routeViewEarly(view, push) {
+    closeMenusEarly();
+
+    if (view === "explorer") return routePageEarly("blocks", push);
+    if (view === "validators") return routePageEarly("consensus", push);
+    if (view === "more") return routePageEarly("runtime", push);
+
+    if (typeof window.showView === "function") {
+      window.showView(view);
+      setActive(view);
+      if (push) pushPath("/");
+      return true;
+    }
+
+    return false;
+  }
+
+  function routeBlockEarly(blockId, push) {
+    closeMenusEarly();
+    setActive("blocks");
+
+    if (push) pushPath("/blocks");
+
+    if (typeof window.silaRenderBlockDetails === "function") {
+      window.silaRenderBlockDetails(blockId);
+      return true;
+    }
+
+    return routePageEarly("blocks", false);
+  }
+
+  function routeTxEarly(txHash, push) {
+    closeMenusEarly();
+    setActive("transactions");
+
+    if (push) pushPath("/transactions");
+
+    if (typeof window.silaRenderTxDetails === "function") {
+      window.silaRenderTxDetails(txHash);
+      return true;
+    }
+
+    return routePageEarly("transactions", false);
+  }
+
+  function routeAddressEarly(address, push) {
+    closeMenusEarly();
+
+    if (typeof window.silaRenderAddressDetails === "function") {
+      window.silaRenderAddressDetails(address);
+      if (push) pushPath("/");
+      return true;
+    }
+
+    return false;
+  }
+
+  function toggleBlockchainEarly() {
+    const dropdown = document.getElementById("blockchainDropdown");
+    const button = document.getElementById("blockchainMenuButton");
+    if (!dropdown || !button) return false;
+
+    const shouldOpen = dropdown.classList.contains("hidden");
+    closeMenusEarly();
+
+    if (shouldOpen) {
+      dropdown.classList.remove("hidden");
+      button.setAttribute("aria-expanded", "true");
+    }
+
+    return true;
+  }
+
+  document.addEventListener("click", function (event) {
+    if (!event.target || typeof event.target.closest !== "function") return;
+
+    const blockchainButton = event.target.closest("#blockchainMenuButton");
+    if (blockchainButton) {
+      event.preventDefault();
+      event.stopImmediatePropagation();
+      toggleBlockchainEarly();
+      return;
+    }
+
+    const pageTarget = event.target.closest("[data-page]");
+    if (pageTarget) {
+      const page = pageTarget.getAttribute("data-page");
+      if (routePageEarly(page, true)) {
+        event.preventDefault();
+        event.stopImmediatePropagation();
+        return;
+      }
+    }
+
+    const blockTarget = event.target.closest("[data-sila-block-detail], [data-sila-block-open], [data-block]");
+    if (blockTarget) {
+      const blockId = blockTarget.getAttribute("data-sila-block-detail")
+        || blockTarget.getAttribute("data-sila-block-open")
+        || blockTarget.getAttribute("data-block");
+
+      if (blockId && routeBlockEarly(blockId, true)) {
+        event.preventDefault();
+        event.stopImmediatePropagation();
+        return;
+      }
+    }
+
+    const txTarget = event.target.closest("[data-tx]");
+    if (txTarget) {
+      const txHash = txTarget.getAttribute("data-tx");
+
+      if (txHash && routeTxEarly(txHash, true)) {
+        event.preventDefault();
+        event.stopImmediatePropagation();
+        return;
+      }
+    }
+
+    const addressTarget = event.target.closest("[data-address]");
+    if (addressTarget) {
+      const address = addressTarget.getAttribute("data-address");
+
+      if (address && routeAddressEarly(address, true)) {
+        event.preventDefault();
+        event.stopImmediatePropagation();
+        return;
+      }
+    }
+
+    const viewTarget = event.target.closest("[data-view]");
+    if (viewTarget) {
+      const view = viewTarget.getAttribute("data-view");
+
+      if (view && routeViewEarly(view, true)) {
+        event.preventDefault();
+        event.stopImmediatePropagation();
+        return;
+      }
+    }
+
+    if (!event.target.closest(".dropdown, .menu-wrap")) {
+      closeMenusEarly();
+    }
+  }, true);
+
+  window.silaRoutePage = routePageEarly;
+  window.silaRouteView = routeViewEarly;
+  window.silaCloseBlockchainDropdown = closeMenusEarly;
+})();
+// SILA_EARLY_NAV_ROUTER_END
 async function fetchJson(url) {
   const response = await fetch(url, { cache: "no-store" });
   return await response.json();
