@@ -969,7 +969,7 @@ async function silaRenderTxDetails(hash) {
   try {
     data = await fetch("/api/sila/tx/" + encodeURIComponent(hash), { cache: "no-store" }).then((res) => res.json());
   } catch (error) {
-    view.innerHTML = "<section class=\"panel\"><h2>Sila Transaction</h2><p class=\"muted\">Transaction API error: " + silaTxEscape(error.message) + "</p></section>";
+    view.innerHTML = "<section class=\"panel sila-detail-card\"><h2>Sila Transaction</h2><p class=\"muted\">Transaction API error: " + silaTxEscape(error.message) + "</p></section>";
     return;
   }
 
@@ -977,7 +977,7 @@ async function silaRenderTxDetails(hash) {
   const receipt = data && data.receipt ? data.receipt.value : null;
 
   if (!data || !data.ok || !tx) {
-    view.innerHTML = "<section class=\"panel\"><h2>Sila Transaction</h2><p class=\"muted\">Transaction not found: " + silaTxEscape(hash) + "</p></section>";
+    view.innerHTML = "<section class=\"panel sila-detail-card\"><h2>Sila Transaction</h2><p class=\"muted\">Transaction not found: " + silaTxEscape(hash) + "</p></section>";
     return;
   }
 
