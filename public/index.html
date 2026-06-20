@@ -55,7 +55,13 @@
     </div>
     <nav>
       <button class="nav-btn active" data-view="home" data-i18n="navHome">Home</button>
-      <button class="nav-btn" data-view="explorer" data-i18n="navBlockchain">Blockchain</button>
+      <div class="menu-wrap nav-menu-wrap">
+        <button id="blockchainMenuButton" class="nav-btn nav-menu-button" type="button" data-i18n="navBlockchain" aria-haspopup="true" aria-expanded="false">Blockchain</button>
+        <div id="blockchainDropdown" class="dropdown nav-dropdown hidden">
+          <button type="button" data-page="blocks"><span>Blocks</span><small>Live</small></button>
+          <button type="button" data-page="transactions"><span>Transactions</span><small>Live</small></button>
+        </div>
+      </div>
       <button class="nav-btn" data-view="wallet" data-i18n="navWallet">Wallet</button>
       <button class="nav-btn" data-view="validators" data-i18n="navValidators">Validators</button>
       <button class="nav-btn" data-view="developers" data-i18n="navDevelopers">Developers</button>
@@ -127,7 +133,7 @@
             <button class="small-btn" data-view-link="explorer" data-i18n="customize">Customize</button>
           </div>
           <div id="homeBlocksList" class="feed-list"><div class="loading" data-i18n="loadingBlocks">Loading Sila blocks...</div></div>
-          <button class="panel-footer-btn" data-view-link="explorer" data-i18n="viewAllBlocks">View all blocks →</button>
+          <button class="panel-footer-btn" data-page="blocks" data-i18n="viewAllBlocks">View all blocks →</button>
         </article>
 
         <article class="home-panel">
@@ -136,7 +142,7 @@
             <button class="small-btn" data-view-link="explorer" data-i18n="customize">Customize</button>
           </div>
           <div id="homeTxList" class="feed-list"><div class="loading" data-i18n="loadingTxs">Loading Sila transactions...</div></div>
-          <button class="panel-footer-btn" data-view-link="explorer" data-i18n="viewAllTransactions">View all transactions →</button>
+          <button class="panel-footer-btn" data-page="transactions" data-i18n="viewAllTransactions">View all transactions →</button>
         </article>
       </section>
     </section>

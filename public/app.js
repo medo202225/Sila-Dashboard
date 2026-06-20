@@ -3108,3 +3108,51 @@ window.silaRenderRuntimePage = silaRenderRuntimePage;
   window.silaRenderTransactionsPage = silaRenderTransactionsPage;
 })();
 // SILA_TRANSACTIONS_PAGE_END
+
+// SILA_BLOCKCHAIN_DROPDOWN_START
+(function () {
+  "use strict";
+
+  function closeBlockchainDropdown() {
+    const dropdown = document.getElementById("blockchainDropdown");
+    const button = document.getElementById("blockchainMenuButton");
+    if (dropdown) dropdown.classList.add("hidden");
+    if (button) button.setAttribute("aria-expanded", "false");
+  }
+
+  function openBlockchainDropdown() {
+    const dropdown = document.getElementById("blockchainDropdown");
+    const button = document.getElementById("blockchainMenuButton");
+    if (!dropdown || !button) return;
+
+    document.querySelectorAll(".dropdown").forEach((node) => {
+      if (node !== dropdown) node.classList.add("hidden");
+    });
+
+    dropdown.classList.toggle("hidden");
+    button.setAttribute("aria-expanded", dropdown.classList.contains("hidden") ? "false" : "true");
+  }
+
+  document.addEventListener("click", function (event) {
+    const button = event.target.closest("#blockchainMenuButton");
+    if (button) {
+      event.preventDefault();
+      event.stopImmediatePropagation();
+      openBlockchainDropdown();
+      return;
+    }
+
+    if (event.target.closest("#blockchainDropdown")) return;
+
+    closeBlockchainDropdown();
+  }, true);
+
+  document.addEventListener("pointerdown", function (event) {
+    if (event.target.closest("#blockchainDropdown [data-page]")) {
+      closeBlockchainDropdown();
+    }
+  }, true);
+
+  window.silaCloseBlockchainDropdown = closeBlockchainDropdown;
+})();
+// SILA_BLOCKCHAIN_DROPDOWN_END

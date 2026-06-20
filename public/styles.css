@@ -3025,3 +3025,55 @@ body {
   }
 }
 /* SILA_TRANSACTIONS_PAGE_END */
+
+/* SILA_BLOCKCHAIN_DROPDOWN_START */
+.nav-menu-wrap {
+  position: relative !important;
+  display: inline-flex !important;
+  align-items: center !important;
+}
+
+.nav-menu-button {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 7px !important;
+}
+
+.nav-menu-button::after {
+  content: "▾";
+  font-size: 11px;
+  opacity: .75;
+  transform: translateY(1px);
+}
+
+.nav-dropdown {
+  top: calc(100% + 12px) !important;
+  left: 0 !important;
+  right: auto !important;
+  min-width: 250px !important;
+  z-index: 1000 !important;
+}
+
+html[dir="rtl"] .nav-dropdown {
+  left: auto !important;
+  right: 0 !important;
+}
+
+.nav-dropdown button span {
+  font-weight: 900 !important;
+}
+
+.nav-dropdown button small {
+  color: #00e676 !important;
+}
+
+@media (max-width: 760px) {
+  .nav-dropdown {
+    position: fixed !important;
+    left: 16px !important;
+    right: 16px !important;
+    top: 118px !important;
+    width: auto !important;
+  }
+}
+/* SILA_BLOCKCHAIN_DROPDOWN_END */
