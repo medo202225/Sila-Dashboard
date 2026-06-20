@@ -959,11 +959,31 @@ function silaTxMiniCard(label, value) {
     + "</div>";
 }
 
-async function silaRenderTxDetails(hash) {
-  const view = document.getElementById("sila-view");
-  if (!view) return;
+function silaTxEnsureView() {
+  document.querySelectorAll(".view").forEach((node) => {
+    node.classList.add("hidden");
+    node.classList.remove("active-view");
+    node.style.display = "none";
+  });
 
-  view.innerHTML = "<section class=\"panel\"><h2>Sila Transaction</h2><p class=\"muted\">Loading transaction details...</p></section>";
+  let view = document.getElementById("featureView");
+  if (!view) {
+    view = document.createElement("section");
+    view.id = "featureView";
+    view.className = "view page";
+    (document.querySelector("main") || document.body).appendChild(view);
+  }
+
+  view.classList.remove("hidden");
+  view.classList.add("active-view");
+  view.style.display = "block";
+
+  return view;
+}
+async function silaRenderTxDetails(hash) {
+  const view = silaTxEnsureView();
+
+  view.innerHTML = "<section class=\"panel sila-detail-card\"><h2>Sila Transaction</h2><p class=\"muted\">Loading transaction details...</p></section>";
 
   let data;
   try {
