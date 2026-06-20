@@ -99,10 +99,13 @@ function applyTheme() {
 }
 
 function closeMenus() {
-  ["settingsDropdown", "languageDropdown", "networkDropdown"].forEach((id) => {
+  ["settingsDropdown", "languageDropdown", "networkDropdown", "blockchainDropdown"].forEach((id) => {
     const node = byId(id);
     if (node) node.classList.add("hidden");
   });
+
+  const blockchainButton = byId("blockchainMenuButton");
+  if (blockchainButton) blockchainButton.setAttribute("aria-expanded", "false");
 }
 
 function toggleMenu(id) {
@@ -114,14 +117,36 @@ function toggleMenu(id) {
 }
 
 function showView(name) {
-  document.querySelectorAll(".view").forEach((node) => node.classList.remove("active-view"));
+  document.querySelectorAll(".view").forEach((node) => {
+    node.classList.remove("active-view");
+    node.classList.add("hidden");
+    node.style.display = "none";
+  });
+
   document.querySelectorAll(".nav-btn").forEach((node) => node.classList.remove("active"));
+
   const view = byId(name + "View");
   const button = document.querySelector("[data-view=\"" + name + "\"]");
-  if (view) view.classList.add("active-view");
-  if (button) button.classList.add("active");
+
+  if (view) {
+    view.classList.remove("hidden");
+    view.classList.add("active-view");
+    view.style.display = "block";
+  }
+
+  if (button) {
+    button.classList.add("active");
+  }
+
+  if (name === "explorer") {
+    const blockchainButton = byId("blockchainMenuButton");
+    if (blockchainButton) blockchainButton.classList.add("active");
+  }
+
   window.scrollTo({ top: 0, behavior: "smooth" });
 }
+
+window.showView = showView;
 
 function showResult(title, data) {
   showView("explorer");
@@ -3156,3 +3181,93 @@ window.silaRenderRuntimePage = silaRenderRuntimePage;
   window.silaCloseBlockchainDropdown = closeBlockchainDropdown;
 })();
 // SILA_BLOCKCHAIN_DROPDOWN_END
+
+// SILA_NAVIGATION_HARDENING_START
+(function () {
+  "use strict";
+
+  function setNavActive(name) {
+    document.querySelectorAll(".nav-btn").forEach((node) => node.classList.remove("active"));
+
+    if (name === "blocks" || name === "transactions" || name === "explorer") {
+      const blockchainButton = document.getElementById("blockchainMenuButton");
+      if (blockchainButton) blockchainButton.classList.add("active");
+      return;
+    }
+
+    const button = document.querySelector("[data-view=\"" + name + "\"]");
+    if (button) button.classList.add("active");
+  }
+
+  function routePage(page, push) {
+    if (page === "blocks" && typeof window.silaRenderBlocksPage === "function") {
+      window.silaRenderBlocksPage(null);
+      setNavActive("blocks");
+      if (push && window.location.pathname !== "/blocks") history.pushState({}, "", "/blocks");
+      return true;
+    }
+
+    if (page === "transactions" && typeof window.silaRenderTransactionsPage === "function") {
+      window.silaRenderTransactionsPage();
+      setNavActive("transactions");
+      if (push && window.location.pathname !== "/transactions") history.pushState({}, "", "/transactions");
+      return true;
+    }
+
+    if (page === "runtime" && typeof window.silaRenderRuntimePage === "function") {
+      window.silaRenderRuntimePage();
+      setNavActive("more");
+      if (push && window.location.pathname !== "/runtime") history.pushState({}, "", "/runtime");
+      return true;
+    }
+
+    if (page === "consensus" && typeof window.silaRenderConsensusPage === "function") {
+      window.silaRenderConsensusPage();
+      setNavActive("validators");
+      if (push && window.location.pathname !== "/consensus") history.pushState({}, "", "/consensus");
+      return true;
+    }
+
+    return false;
+  }
+
+  document.addEventListener("click", function (event) {
+    const pageTarget = event.target.closest("[data-page]");
+    if (pageTarget) {
+      const page = pageTarget.getAttribute("data-page");
+      if (routePage(page, true)) {
+        event.preventDefault();
+        event.stopImmediatePropagation();
+
+        if (typeof window.silaCloseBlockchainDropdown === "function") {
+          window.silaCloseBlockchainDropdown();
+        }
+
+        return;
+      }
+    }
+
+    const viewTarget = event.target.closest("[data-view]");
+    if (viewTarget && !viewTarget.closest("#blockchainDropdown")) {
+      const view = viewTarget.getAttribute("data-view");
+      if (typeof window.showView === "function") {
+        event.preventDefault();
+        event.stopImmediatePropagation();
+        window.showView(view);
+        if (view === "home" && window.location.pathname !== "/") history.pushState({}, "", "/");
+      }
+    }
+  }, true);
+
+  window.addEventListener("popstate", function () {
+    const path = window.location.pathname.replace(/\/+$/, "") || "/";
+    if (path === "/blocks") routePage("blocks", false);
+    else if (path === "/transactions") routePage("transactions", false);
+    else if (path === "/runtime") routePage("runtime", false);
+    else if (path === "/consensus") routePage("consensus", false);
+    else if (typeof window.showView === "function") window.showView("home");
+  });
+
+  window.silaRoutePage = routePage;
+})();
+ // SILA_NAVIGATION_HARDENING_END
