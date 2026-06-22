@@ -2261,7 +2261,7 @@ async function silaRenderRuntimePage() {
   const validatorProcessOk = !!(validator && validator.ok);
   const executionLayerOk = !!(execution && execution.ok);
   const beaconPeerCount = Number(consensus.connectedPeers || 0);
-  const twoBeaconModeOk = beaconAOk && beaconBOk && validatorProcessOk && executionLayerOk && beaconPeerCount > 0;
+  const runtimeTopologyOk = beaconAOk && beaconBOk && validatorProcessOk && executionLayerOk && beaconPeerCount > 0;
 
   view.innerHTML = ""
     + "<section class=\"sila-detail-hero\">"
@@ -2284,7 +2284,7 @@ async function silaRenderRuntimePage() {
     + silaRuntimeMetric("Latest Block", execution.latestBlockNumber !== null && execution.latestBlockNumber !== undefined ? "#" + execution.latestBlockNumber : "—", execution.productionMoving ? "Producing blocks" : "Check production", !!execution.productionMoving)
     + silaRuntimeMetric("Head Slot", consensus.headSlot || "—", "Sync distance " + silaRuntimeEscape(consensus.syncDistance), consensus.isSyncing === false)
     + silaRuntimeMetric("Beacon Peers", consensus.connectedPeers !== undefined ? consensus.connectedPeers : "0", Number(consensus.connectedPeers || 0) > 0)
-    + silaRuntimeMetric("Devnet Mode", twoBeaconModeOk ? "Two-Beacon" : "Check", "A " + (beaconAOk ? "connected" : "missing") + " / B " + (beaconBOk ? "connected" : "missing"), twoBeaconModeOk)
+    + silaRuntimeMetric("Runtime Topology", runtimeTopologyOk ? "Ready" : "Check", "Execution + consensus clients", runtimeTopologyOk)
     + silaRuntimeMetric("CL reports EL offline", consensus.elOffline === true ? "Yes" : "No", "Reported by CL REST", consensus.elOffline !== true)
     + "  </div>"
     + "</section>"
@@ -2315,12 +2315,12 @@ async function silaRenderRuntimePage() {
     + "</div>"
     + "</section>"
     + "<section class=\"panel sila-runtime-card\">"
-    + "  <h2>Two-Beacon Devnet Mode</h2>"
+    + "  <h2>Runtime Topology</h2>"
     + "  <div class=\"sila-detail-grid\">"
-    + silaRuntimeRow("Mode", twoBeaconModeOk ? "Two-Beacon Devnet" : "Incomplete", false)
-    + silaRuntimeRow("Beacon A", beaconAOk ? "connected" : "not detected", false)
-    + silaRuntimeRow("Beacon B", beaconBOk ? "connected" : "not detected", false)
-    + silaRuntimeRow("Beacon Connected Peers", beaconPeerCount, false)
+    + silaRuntimeRow("Topology", runtimeTopologyOk ? "Execution + consensus clients" : "Incomplete", false)
+    + silaRuntimeRow("Consensus Client A", beaconAOk ? "detected" : "not detected", false)
+    + silaRuntimeRow("Consensus Client B", beaconBOk ? "detected" : "not detected", false)
+    + silaRuntimeRow("Consensus Connected Peers", beaconPeerCount, false)
     + silaRuntimeRow("Validator", validatorProcessOk ? "running" : "not detected", false)
     + silaRuntimeRow("Execution", executionLayerOk ? "online" : "offline", false)
     + "  </div>"
