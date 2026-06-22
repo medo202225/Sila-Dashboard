@@ -2251,6 +2251,17 @@ async function silaRenderRuntimePage() {
   const local = data.local || {};
   const latest = execution.latestBlock || {};
   const recentBlocks = Array.isArray(execution.recentBlocks) ? execution.recentBlocks : [];
+  const processItems = local && local.processes && Array.isArray(local.processes.items) ? local.processes.items : [];
+  const hasProcess = (name, marker) => processItems.some((item) =>
+    String(item.Name || "").toLowerCase() === name.toLowerCase()
+    && (!marker || String(item.CommandLine || "").toLowerCase().includes(marker.toLowerCase()))
+  );
+  const beaconAOk = hasProcess("beacon-chain.exe", "beacon-a");
+  const beaconBOk = hasProcess("beacon-chain.exe", "beacon-b");
+  const validatorProcessOk = !!(validator && validator.ok);
+  const executionLayerOk = !!(execution && execution.ok);
+  const beaconPeerCount = Number(consensus.connectedPeers || 0);
+  const twoBeaconModeOk = beaconAOk && beaconBOk && validatorProcessOk && executionLayerOk && beaconPeerCount > 0;
 
   view.innerHTML = ""
     + "<section class=\"sila-detail-hero\">"
@@ -2273,6 +2284,7 @@ async function silaRenderRuntimePage() {
     + silaRuntimeMetric("Latest Block", execution.latestBlockNumber !== null && execution.latestBlockNumber !== undefined ? "#" + execution.latestBlockNumber : "—", execution.productionMoving ? "Producing blocks" : "Check production", !!execution.productionMoving)
     + silaRuntimeMetric("Head Slot", consensus.headSlot || "—", "Sync distance " + silaRuntimeEscape(consensus.syncDistance), consensus.isSyncing === false)
     + silaRuntimeMetric("Beacon Peers", consensus.connectedPeers !== undefined ? consensus.connectedPeers : "0", Number(consensus.connectedPeers || 0) > 0)
+    + silaRuntimeMetric("Devnet Mode", twoBeaconModeOk ? "Two-Beacon" : "Check", "A " + (beaconAOk ? "connected" : "missing") + " / B " + (beaconBOk ? "connected" : "missing"), twoBeaconModeOk)
     + silaRuntimeMetric("CL reports EL offline", consensus.elOffline === true ? "Yes" : "No", "Reported by CL REST", consensus.elOffline !== true)
     + "  </div>"
     + "</section>"
@@ -2300,6 +2312,17 @@ async function silaRenderRuntimePage() {
     + silaRuntimeRow("Beacon Connected Peers", consensus.connectedPeers)
     + silaRuntimeRow("Peer State", consensus.peerState)
     + silaRuntimeRow("Head Root", consensus.headRoot || "—", true)
+    + "</div>"
+    + "</section>"
+    + "<section class=\"panel sila-runtime-card\">"
+    + "  <h2>Two-Beacon Devnet Mode</h2>"
+    + "  <div class=\"sila-detail-grid\">"
+    + silaRuntimeRow("Mode", twoBeaconModeOk ? "Two-Beacon Devnet" : "Incomplete", false)
+    + silaRuntimeRow("Beacon A", beaconAOk ? "connected" : "not detected", false)
+    + silaRuntimeRow("Beacon B", beaconBOk ? "connected" : "not detected", false)
+    + silaRuntimeRow("Beacon Connected Peers", beaconPeerCount, false)
+    + silaRuntimeRow("Validator", validatorProcessOk ? "running" : "not detected", false)
+    + silaRuntimeRow("Execution", executionLayerOk ? "online" : "offline", false)
     + "  </div>"
     + "</section>"
     + "<section class=\"panel sila-runtime-card\">"
