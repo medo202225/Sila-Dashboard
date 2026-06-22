@@ -510,6 +510,8 @@ async function runtimePage() {
   const latestBlock = latestBlockRaw.ok ? blockView(latestBlockRaw.value) : null;
   const recentBlocks = blockNumber.ok ? await getRecentBlocks(blockNumber.value, false) : [];
   const sync = syncing.ok && syncing.value && syncing.value.data ? syncing.value.data : null;
+  const peers = await restJson("/sila/v1/node/peers?state=connected");
+  const peerList = peers.ok && peers.value && Array.isArray(peers.value.data) ? peers.value.data : [];
   const headData = head.ok && head.value && head.value.data ? head.value.data : null;
 
   const latestTimestamp = latestBlock && latestBlock.timestamp ? Number(latestBlock.timestamp) : 0;
@@ -550,10 +552,12 @@ async function runtimePage() {
       isSyncing: sync ? sync.is_syncing === true : null,
       isOptimistic: sync ? sync.is_optimistic === true : null,
       elOffline: sync ? sync.el_offline === true : null,
+      connectedPeers: peerList.length,
+      peerState: peers.ok ? "connected" : "unavailable",
       headRoot: headData ? headData.root : null,
       finalized: headData ? headData.finalized === true : null,
       executionOptimistic: head.value ? head.value.execution_optimistic === true : null,
-      checks: { health, version, syncing, head }
+      checks: { health, version, syncing, head, peers }
     },
     validator: {
       ok: validatorProcessOk,

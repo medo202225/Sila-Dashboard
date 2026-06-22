@@ -2268,6 +2268,7 @@ async function silaRenderRuntimePage() {
     + silaRuntimeMetric("Validator", validator.ok ? "Running" : "Not detected", "Local validator process", !!validator.ok)
     + silaRuntimeMetric("Latest Block", execution.latestBlockNumber !== null && execution.latestBlockNumber !== undefined ? "#" + execution.latestBlockNumber : "—", execution.productionMoving ? "Producing blocks" : "Check production", !!execution.productionMoving)
     + silaRuntimeMetric("Head Slot", consensus.headSlot || "—", "Sync distance " + silaRuntimeEscape(consensus.syncDistance), consensus.isSyncing === false)
+    + silaRuntimeMetric("Beacon Peers", consensus.connectedPeers !== undefined ? consensus.connectedPeers : "0", Number(consensus.connectedPeers || 0) > 0)
     + silaRuntimeMetric("CL reports EL offline", consensus.elOffline === true ? "Yes" : "No", "Reported by CL REST", consensus.elOffline !== true)
     + "  </div>"
     + "</section>"
@@ -2292,6 +2293,8 @@ async function silaRenderRuntimePage() {
     + silaRuntimeRow("Is Optimistic", consensus.isOptimistic === true ? "Yes" : "No", false)
     + silaRuntimeRow("Execution Optimistic", consensus.executionOptimistic === true ? "Yes" : "No", false)
     + silaRuntimeRow("EL Offline Flag", consensus.elOffline === true ? "Yes" : "No", false)
+    + silaRuntimeRow("Beacon Connected Peers", consensus.connectedPeers)
+    + silaRuntimeRow("Peer State", consensus.peerState)
     + silaRuntimeRow("Head Root", consensus.headRoot || "—", true)
     + "  </div>"
     + "</section>"
