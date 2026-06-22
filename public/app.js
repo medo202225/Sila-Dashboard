@@ -1519,6 +1519,7 @@ async function silaRenderHomeDashboard() {
   let data;
   try {
     data = await fetch("/api/sila/summary", { cache: "no-store" }).then((res) => res.json());
+    data.runtime = await fetch("/api/runtime/status", { cache: "no-store" }).then((res) => res.json()).catch(() => null);
   } catch (error) {
     holder.innerHTML = "<h2>Sila Network Overview</h2><p class=\"muted\">Summary API error: " + silaHomeDashboardEscape(error.message) + "</p>";
     return;
@@ -1533,6 +1534,8 @@ async function silaRenderHomeDashboard() {
   const consensusOk = !!(data.consensus && data.consensus.ok);
   const headSlot = data.consensus && data.consensus.syncing ? data.consensus.syncing.headSlot : "—";
   const syncDistance = data.consensus && data.consensus.syncing ? data.consensus.syncing.syncDistance : "—";
+  const beaconPeers = data.runtime && data.runtime.consensus && data.runtime.consensus.connectedPeers !== undefined ? data.runtime.consensus.connectedPeers : "—";
+  const peerState = data.runtime && data.runtime.consensus && data.runtime.consensus.peerState ? data.runtime.consensus.peerState : "unknown";
 
   holder.innerHTML = ""
     + "<div class=\"sila-home-dashboard-head\">"
@@ -1549,6 +1552,7 @@ async function silaRenderHomeDashboard() {
     + silaHomeDashboardMetric("Gas", gas, "Current Sila gas price", "")
     + silaHomeDashboardMetric("Execution", executionOk ? "Online" : "Offline", silaHomeDashboardStatus(executionOk, "Sila execution RPC connected", "Sila execution RPC unavailable"), "")
     + silaHomeDashboardMetric("Consensus", consensusOk ? "Online" : "Offline", silaHomeDashboardStatus(consensusOk, "Head slot " + headSlot + " / distance " + syncDistance, "Sila consensus REST unavailable"), "")
+    + silaHomeDashboardMetric("Beacon Peers", beaconPeers, peerState === "connected" ? "connected" : peerState, "runtime")
     + "</div>";
 }
 
